@@ -1,6 +1,8 @@
 ﻿using Syncfusion.Blazor;
 using TcneCalendar;
 using TcneCalendar.Components;
+using Microsoft.Extensions.Azure;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,9 +11,32 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddSyncfusionBlazor();
 
+var configuration = builder.Configuration;
+
+builder.Services.AddHttpClient("MyHttpClient", client =>
+{
+    client.BaseAddress = new Uri(configuration["CheckFront_Api_Url"]);
+
+    // Additional configuration options for the HttpClient can be set here
+});
+
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
+//builder.Services.AddLogging();
+builder.Services.AddHttpClient();
+//builder.Services.AddMemoryCache();
+
+
+// TODO needed >>>>>>>>>>>>>>>>>>>
+builder.Services.AddAzureClients(clientBuilder =>
+{
+    clientBuilder.AddBlobServiceClient(builder.Configuration["StorageConnectionString:blob"], preferMsi: true);
+});
+
+
 var app = builder.Build();
-//Register Syncfusion license https://help.syncfusion.com/common/essential-studio/licensing/how-to-generate
-//Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("YOUR LICENSE KEY");
+
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(configuration["SyncFusionLicenseKey"]);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -25,6 +50,15 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+// Custom middleware to add the X-Frame-Options header
+app.Use(async (context, next) =>
+{
+    string allowUri = configuration["X-Frame-Options ALLOW-FROM"];
+
+    context.Response.Headers.Append($"X-Frame-Options", "ALLOW-FROM {allowUri}");
+    await next();
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

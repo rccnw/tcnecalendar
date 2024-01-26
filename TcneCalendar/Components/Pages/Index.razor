@@ -1,41 +1,71 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+@rendermode InteractiveServer
 
-<span class="pageheader">Selected Controls</span>
+@using Syncfusion.Blazor.Schedule
+@using Syncfusion.Blazor.SplitButtons
+@using TcneCalendar.Data
+@using Microsoft.Extensions.Caching.Memory
+@using TcneCalendar
+@using System.Threading.Tasks;
+
+@inject IConfiguration Configuration
+@inject HttpClient http
+@* @inject IMemoryCache MemoryCache *@
+@* @inject ILogger<Index> Logger *@
+
+
+<PageTitle>TCNE Calendar</PageTitle>
+
+<span class="pageheader">TCNE Calendar</span>
 <br />
-<p class="pagecontent">The following Syncfusion Blazor components can be set up in an application for you with the Syncfusion Blazor Template Studio. A fast, easy start with Syncfusion Blazor components lets you concentrate on the important part: learning.</p>
+
+<div class="infoMessage">
+    @Configuration["InfoMessage"]
+</div>
+
 <div class="controlregion">
 
- <h5 class="productheader"> Calendar</h5>
-<ul class="ulstyle">
-	<li class="list">
- 	<NavLink class="nav-link" href="scheduler-features">
- 	<span class="syncfusion-blazor-index-icons syncfusion-blazor-icon-scheduler" aria-hidden="true"></span>Scheduler
- 	</NavLink>
- 	</li>
+@*  <h5 class="productheader"> Calendar</h5> *@
 
-</ul>
- <h5 class="productheader"> Layout</h5>
-<ul class="ulstyle">
-	<li class="list">
- 	<NavLink class="nav-link" href="mediaquery-features">
- 	<span class="syncfusion-blazor-index-icons syncfusion-blazor-icon-mediaquery" aria-hidden="true"></span>Media Query
- 	</NavLink>
- 	</li>
 
-</ul>
- <h5 class="productheader"> Buttons</h5>
-<ul class="ulstyle">
-	<li class="list">
- 	<NavLink class="nav-link" href="buttongroup-features">
- 	<span class="syncfusion-blazor-index-icons syncfusion-blazor-icon-buttongroup" aria-hidden="true"></span>Button Group
- 	</NavLink>
- 	</li>
-
-</ul>
-
+<div class="control-section">
+    <div class="button-group-section">
+        <div id="button-group-control">
+            <div class="row">
+                <SfButtonGroup Mode="SelectionMode.Single">
+                    <ButtonGroupButton @onclick="NestButton">Nest</ButtonGroupButton>
+                        <ButtonGroupButton @onclick="HideoutButton">Hideout</ButtonGroupButton>
+                        <ButtonGroupButton Selected="true" @onclick="BothButton">Both</ButtonGroupButton>
+                </SfButtonGroup>
+            </div>
+        </div>
+    </div>
 </div>
+
+    <br /> 
+    <br />
+    <SfSchedule 
+        TValue="ScheduleData.AppointmentData" 
+        Readonly = "true"
+        AllowDragAndDrop="false" 
+        ShowQuickInfo="false" 
+        EnableAutoRowHeight="true"  
+        Height="650px"
+        @bind-CurrentView="@CurrentView"
+        @bind-SelectedDate="@CurrentDate">
+
+        <ScheduleViews>
+            <ScheduleView Option="View.Day" ></ScheduleView>
+            <ScheduleView Option="View.Week"></ScheduleView>
+            <ScheduleView Option="View.Month" IsSelected="true"></ScheduleView>
+        </ScheduleViews>
+
+        <ScheduleEventSettings DataSource="@DataSource" EnableTooltip="true"></ScheduleEventSettings>
+
+    </SfSchedule>
+</div>
+
 <style>
     .ulstyle {
         margin-top: 10px;
@@ -51,11 +81,11 @@
 
     .pagecontent {
         font-family: sans-serif !important;
-font-size: 16px;
-color: #333333;
-letter-spacing: 0.34px;
-line-height: 24px;
-margin-top: 10px;
+        font-size: 16px;
+        color: #333333;
+        letter-spacing: 0.34px;
+        line-height: 24px;
+        margin-top: 10px;
     }
     
 
@@ -92,4 +122,166 @@ margin-top: 10px;
         color: #333333 ;
         font-weight: bold !important;
     }
+
+
+    .e-appointment.nest {
+        background: lightblue;
+    }
+
+    .e-appointment.hideout {
+        background: lightgreen;
+    }
+
+    .e-appointment.unknown {
+        background: purple;
+    }
+
+
+    .nest {
+        background: lightblue;
+    }
+
+    .hideout {
+        background: lightgreen;
+    }
+
+    .unknown {
+        background: blue;
+    }
+
+
+    .e-schedule .e-vertical-view .e-all-day-appointment-wrapper .e-appointment.nest,
+    .e-schedule .e-vertical-view .e-day-wrapper .e-appointment.nest,
+    .e-schedule .e-month-view .e-appointment.nest {
+        background: #32CD32;
+    }
+
+    .e-schedule .e-vertical-view .e-all-day-appointment-wrapper .e-appointment.hideout,
+    .e-schedule .e-vertical-view .e-day-wrapper .e-appointment.hideout,
+    .e-schedule .e-month-view .e-appointment.hideout {
+        background: blue;
+    }
+
+
+
+
+
 </style>
+
+@code {
+    public DateTime CurrentDate = new DateTime(2024, 1, 19);
+
+    string displayLocation = "nest";
+
+    public void NestButton()
+    {
+        displayLocation = "nest";
+    }
+
+    public void HideoutButton()
+    {
+        displayLocation = "hideout";
+    }
+
+    public void BothButton()
+    {
+        displayLocation = "both";
+    }
+
+
+
+
+
+
+
+    //  private bool centerSelected = true;
+
+
+    //public List<ScheduleData.AppointmentData> DataSource = new ScheduleData(Configuration).GetScheduleData();
+
+
+    // private const string CacheKey = "TcneCalendarCacheKey";
+    // private List<ScheduleData.AppointmentData> cachedData;
+
+
+
+    public List<ScheduleData.AppointmentData> DataSource;
+    View CurrentView = View.Day;
+
+
+
+
+    protected async override Task OnInitializedAsync()
+    {
+
+        base.OnInitializedAsync();
+        DataSource = new List<ScheduleData.AppointmentData>();  // TODO testing to see if priming the SyncFusion code helps
+
+        //await Task.Delay(500);
+
+        //  Logger.LogInformation("Index.razor page OnInitializedAsync.");
+
+
+        //   cachedData = await GetCachedDataAsync();
+
+        // get data from CheckFrontAPI
+        //var service = new ScheduleData(Configuration, http);
+        //List<ScheduleData.AppointmentData> listAppts = await service.GetScheduleDataCheckFrontAsync(http, displayLocation);
+        //  DataSource = listAppts;
+
+
+        // store this data in a blob
+        AzureStorage.InitBlobServiceClient(Configuration);
+
+        //await AzureStorage.SaveAppointmentsAzure(listAppts);
+
+       List<ScheduleData.AppointmentData> listAppts = await AzureStorage.LoadAppointmentsAzure();
+
+        //var listAppts = new List<ScheduleData.AppointmentData>();        // DEBUG try this give no data to scheduler
+        DataSource = listAppts;
+    }
+
+    // private async Task<List<ScheduleData.AppointmentData>> GetCachedDataAsync()
+    // {
+    //     List<ScheduleData.AppointmentData> apptData = new List<ScheduleData.AppointmentData>();
+
+    //     return await MemoryCache.GetOrCreateAsync(CacheKey, async entry =>
+    //     {
+           
+
+    //         // Set cache options, e.g., sliding expiration
+    //         entry.SlidingExpiration = TimeSpan.FromMinutes(30);
+
+    //         // Fetch data to cache
+    //         var service = new ScheduleData(Configuration, http);
+    //         apptData = await service.GetScheduleDataAsync(http);
+
+    //     });
+    // }
+
+   // DataSource = new ScheduleData(Configuration, http).GetScheduleData(http, displayLocation);
+
+    // }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Perform any initialization or setup actions after the component has rendered for the first time
+
+
+            AzureStorage.InitBlobServiceClient(Configuration);
+
+            //await AzureStorage.SaveAppointmentsAzure(listAppts);
+
+            List<ScheduleData.AppointmentData> listAppts = await AzureStorage.LoadAppointmentsAzure();
+
+            DataSource = listAppts;
+
+            CurrentView = View.Month;
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}

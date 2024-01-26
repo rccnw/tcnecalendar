@@ -9,3 +9,200 @@ Included Shceduler, Media Queries, ButtonGroup
 
 Git Repo
 https://github.com/rccnw/tcnecalendar.git
+
+
+
+
+
+TODO:
+
+storage account  save/fetch
+PWA
+CheckFront API fetch and update storage account
+Studio Category display buttons
+
+WebHook for CheckFront
+
+
+
+Questions:   rcc@pobox.com
+
+
+This project is intended to provide a limited mirror of the CheckFront Bookings calendar for the Crow's Nest Escape and Hideout.
+
+It can be accessed on the web via the Crow's Nest Wix website and directly on Azure.
+
+Wix:					https://www.thecrowsnestescape.com/probooking (requires password 'TCNEPRO')
+Microsoft Azure Cloud:	https://tcne.azurewebsites.net/
+
+The purpose is only to provide an indication of available times at each facility. 
+
+The site is hosted on Azure, but in Wix a feature named 'embed code' allows an iFrame on the Wix site 
+to use an external URL to render the iFrame client area.
+
+See the page called 'Pro Booking' in the Wix Editor for the Crow's Nest site.
+
+
+Terms:
+studio		- either the Nest or the Escape
+booking		- a reservation for time at one of the studios
+
+
+
+Requirements:
+
+This Calendar is non-interactive.
+Bookings are displayed on a calendar showing reserved times as blocks of varying height by reservation duration.
+Bookings are only displayed from the current date forward.
+A set of buttons will allow select of data from the Nest, the Escape, or Both.  
+Site reservations are color coded.
+Exlude any bookings athat are VOID or CANCEL status.
+The Calendar is not guaranteed to be accurate, as the data refresh from CheckFront API is 'as needed' 
+Only Start/End time is displayed.  That is implicit in the size of the reservation block in the UI, so maybe no popup detail needed.
+
+
+TBD  - better syncronization with CheckFront is possible in future version
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Assumption:
+
+The Booking detail data is fetched from the CheckFront API at the booking/booking_id endpoint
+A sepearate API call is required to get this detail data for each booking (rental)
+That API call returns detail data about the booking, including a list of 'items', each item has 3 values we need: 
+	1) start_date (encoded datetime)
+	2) end_date (encoded datetime)
+	3) category_id (13 Nest,  14 = Hideout)
+
+This app assumes there is ONLY ONE ITEM in this 'item' list.  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+json excerpt:
+
+    "items": {
+      "1": {
+        "start_date": 1703894400,
+        "end_date": 1703901600,
+        "category_id": 13,
+        ...
+      }
+    },
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+This project is a web application created using Microsoft Blazor, a web technology using .NET and C# for web development.
+
+This project was created in Microsoft Visual Studio 2022 Community edition, an IDE (integrated development environment) for .NET development.
+
+This project uses proprietary UI components by SyncFusion, using a Community License.
+This project was created using a SyncFusion application starter template : 'SyncFusion Blazor Template Studio'
+The project type is 'SyncFusion Blazor Web App'. 
+'Blazor Web App' is the name of a Microsoft starter template introduced in .NET 8 in November 2023.
+
+Summary:
+Template:       SyncFusion Blazor Template Studio
+Project Type:   SyncFusion Blazor Web App
+Config: 		HTTPS
+Version:		.NET 8.0
+Theme:			Fluent
+Auth:			None
+Interactivity:	Server, Per page/component
+
+This application is hosted on Microsoft Azure Cloud as an App Service in the Free Tier.
+Access to the CheckFront API uses Basic Auth Tokens.
+This application is registered with the CheckFront API using Microsoft Azure Cloud URL:	https://tcne.azurewebsites.net/
+
+
+https://portal.azure.com
+
+resource group: crowsnest
+Location:       West US 3
+
+App Service/Web App:    tcne    West US 3
+App Service Plan:       tcne    West US 3
+Application Insights:   tcne    West US 3
+Smart detector alert rule:  Failure Anomalies - tcne  Global
+
+Storage Account:        tcne    West US 3       
+
+    Standard (general purpose v2) 
+    LRS locally redundant (lowest cost)  
+    Hot
+    Network access : disable public access and use private access
+
+Managed Identity for App Service
+
+Tutorial: Access Azure services from a .NET web app
+https://learn.microsoft.com/en-us/azure/app-service/scenario-secure-app-access-storage?tabs=azure-portal
+
+Managed Identity for web app tcne id enabled
+Object (principal) ID:          83877288-185b-496d-9b8f-e14c1b5976b9
+
+
+
+
+
+===========================================================
+Dev Notes:
+
+Register Syncfusion license https://help.syncfusion.com/common/essential-studio/licensing/how-to-generate
+
+
+Identify JSON File and Data Structure: First, ensure that your JSON file is placed in the appropriate directory within your Blazor project. 
+You also need a C# class that matches the structure of your JSON data.
+
+
+
+Reading the File: Utilize file-reading capabilities to access the contents of the JSON file. 
+In a Blazor Server application, this can be done directly as it runs on the server. 
+For Blazor WebAssembly, you might need to fetch the file via HTTP if it's static content.
+
+Deserializing JSON: Use a JSON parser (like System.Text.Json or Newtonsoft.Json) to convert the JSON data into the C# object.
+
+Error Handling: Implement error handling to manage any issues that might occur during file reading or JSON parsing.
+
+
+
+
+https://tcne.checkfront.com/manage/developer/edit/?clientId=7697c358461a802d4e9750e64f8849ceba60950a
+
+
+App Name:  azurewebsites
+
+
+API Endpoint
+https://tcne.checkfront.com/api/3.0/
+
+Authentication Type
+Token
+
+API Key
+HTTP BASIC Username (Token auth)
+7697c358461a802d4e9750e64f8849ceba60950a
+
+API Secret
+HTTP BASIC Password (Token auth)
+e22e0ae449ad7ad1930d1a27b36b25d532d7ca096f97d8e17e61c98b81c8d56f
+
+When send in request header using HTTP Basic authorization, allows direct access to API endpoints
+
+
+Appointments in Blazor Scheduler Component
+https://blazor.syncfusion.com/documentation/scheduler/appointments
+
+To create an event on Scheduler, it is enough to define the StartTime and EndTime fields.
+
+Style And Appearance in Blazor Scheduler Component
+https://blazor.syncfusion.com/documentation/scheduler/scheduler-styling
+
+Getting Started with Blazor ButtonGroup Component
+https://blazor.syncfusion.com/documentation/button-group/getting-started
+
+How to troubleshoot server and client exceptions in Blazor
+https://blazor.syncfusion.com/documentation/common/how-to/troubleshoot
+
+
+https://blazor.syncfusion.com/documentation/scheduler/views
+        MinDate="@CurrentDate"      
+
+     @*            MaxDate="new DateTime(2023, 12, 31)" *@
+

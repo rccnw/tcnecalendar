@@ -4,8 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>5872bbf7-ec8e-4173-91e0-f1222e77810b</UserSecretsId>
   </PropertyGroup>
 <ItemGroup>
+	    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+	    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.0.0" />
+	    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.1" />
+	    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+	    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
 	    <PackageReference Include="Syncfusion.Blazor.Layouts" Version="24.1.47" />
     <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="24.1.47" />
     <PackageReference Include="Syncfusion.Blazor.Schedule" Version="24.1.47" />

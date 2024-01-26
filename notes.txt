@@ -1,0 +1,11 @@
+
+TCNE Calendar App
+
+Created using SyncFusion Studio Template
+Blazor Web App
+Included Shceduler, Media Queries, ButtonGroup
+.NET 8
+
+
+Git Repo
+https://github.com/rccnw/tcnecalendar.git

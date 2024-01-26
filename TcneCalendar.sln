@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34511.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TcneCalendar", "TcneCalendar\TcneCalendar.csproj", "{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{E9C284C7-8444-4AA5-B515-A14F2C7BDE79}"
+	ProjectSection(SolutionItems) = preProject
+		notes.txt = notes.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8E7FDEB1-3508-43FE-97A3-CFFFF030CD3B}
+	EndGlobalSection
+EndGlobal

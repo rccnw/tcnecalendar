@@ -620,6 +620,7 @@ namespace TcneCalendar.Data
             public string RecurrenceException { get; set; } = string.Empty;
             public string StartTimezone { get; set; } = string.Empty;
             public string EndTimezone { get; set; } = string.Empty;
+            public string CssClass { get; set; } = string.Empty;
         }
         public class ResourceData : AppointmentData
         {

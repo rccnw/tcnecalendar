@@ -9,9 +9,9 @@ namespace TcneCalendar
     }
 
     public class CheckFrontApiService
-    {
-        string username = "";
-        string password = "";
+    {        //string username = "";
+        //string password = "";
+
 
         private readonly HttpClient _httpClient;
 
@@ -29,8 +29,12 @@ namespace TcneCalendar
 
         public string GetBasicAuthToken()  // string username, string password   TODO store in App Service Config and access from there
         {
-            string username = _configuration["HTTP BASIC Username"];
-            string password = _configuration["HTTP BASIC Password"];
+            if (_configuration == null)
+            {
+                throw new ArgumentNullException(nameof(_configuration));
+            }
+            string? username = _configuration["HTTP BASIC Username"];
+            string? password = _configuration["HTTP BASIC Password"];
 
             var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
             return Convert.ToBase64String(byteArray);

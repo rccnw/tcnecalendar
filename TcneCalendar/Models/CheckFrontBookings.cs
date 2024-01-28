@@ -9,6 +9,17 @@ namespace TcneCalendar.Models
 
     public class Root
     {
+        public Root()
+        {
+            Version = string.Empty;
+            AccountId = 0;
+            HostId = string.Empty;
+            Name = string.Empty;
+            Locale = new Locale();
+            Request = new Request();
+            BookingIndex = new Dictionary<string, Booking>();
+        }
+
         [JsonPropertyName("version")]
         public string Version { get; set; }
 
@@ -33,6 +44,13 @@ namespace TcneCalendar.Models
 
     public class Locale
     {
+        public Locale()
+        {
+            Id = string.Empty;
+            Lang = string.Empty;
+            Currency = string.Empty;
+        }
+
         [JsonPropertyName("id")]
         public string Id { get; set; }
 
@@ -45,6 +63,21 @@ namespace TcneCalendar.Models
 
     public class Request
     {
+        public Request()
+        {
+            Path = new List<string>();
+            Resource = string.Empty;
+            Records = 0;
+            TotalRecords = 0;
+            Status = string.Empty;
+            Limit = 0;
+            Page = 0;
+            Pages = 0;
+            Time = 0.0;
+            Timestamp = 0.0;
+            Method = string.Empty;
+        }
+
         [JsonPropertyName("path")]
         public List<string> Path { get; set; }
 
@@ -81,6 +114,28 @@ namespace TcneCalendar.Models
 
     public class Booking
     {
+        public Booking()
+        {
+            BookingId = 0;
+            Code = string.Empty;
+            StatusId = string.Empty;
+            StatusName = string.Empty;
+            CreatedDate = 0;
+            Total = string.Empty;
+            TaxTotal = string.Empty;
+            PaidTotal = string.Empty;
+            CustomerId = 0;
+            CustomerName = string.Empty;
+            CustomerEmail = string.Empty;
+            Summary = string.Empty;
+            DateDescription = string.Empty;
+            Tid = string.Empty;
+            Token = string.Empty;
+            StartDate = 0;
+            EndDate = 0;
+            Studio = 0;
+        }
+
         [JsonPropertyName("booking_id")]
         public int BookingId { get; set; }
 

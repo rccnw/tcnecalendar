@@ -29,13 +29,18 @@ namespace TcneCalendar
         static BlobContainerClient _blobContainerClient;
 
 
-        static string _accountName = string.Empty;
-        static string _containerName = string.Empty;
-        static string _blobName = string.Empty;
-        static string _storageKey = string.Empty;
-        static string _storageConnectionString = string.Empty;
+        static string? _accountName = string.Empty;
+        static string? _containerName = string.Empty;
+        static string? _blobName = string.Empty;
+        static string? _storageKey = string.Empty;
+        static string? _storageConnectionString = string.Empty;
 
         //        static ILogger<AzureStorage> _logger;
+
+        //static AzureStorage(IConfiguration Configuration) 
+        //{ 
+        
+        //}
 
 
         public static void InitBlobServiceClient(IConfiguration Configuration)  // , ILogger<AzureStorage> logger
@@ -47,14 +52,15 @@ namespace TcneCalendar
                 throw new ArgumentNullException(nameof(Configuration));
             }
 
-            _accountName = Configuration["AzureStorageAccountName"];
-            _containerName = Configuration["AzureStorageAccountContainerName"];
-            _blobName = Configuration["AzureStorageBlobName"];
-            _storageKey = Configuration["StorageKey"];
+            _accountName = Configuration["AzureStorageAccountName"];   
+
+            _containerName          = Configuration["AzureStorageAccountContainerName"];
+            _blobName               = Configuration["AzureStorageBlobName"];
+            _storageKey             = Configuration["StorageKey"];
             _storageConnectionString = Configuration["StorageConnectionString"];
 
-            _blobServiceClient = new BlobServiceClient(_storageConnectionString);
-            _blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            _blobServiceClient      = new BlobServiceClient(_storageConnectionString);
+            _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
         }
 
         static public async Task SaveAppointmentsAzure(List<ScheduleData.AppointmentData> listAppointments)

@@ -15,8 +15,11 @@ var configuration = builder.Configuration;
 
 builder.Services.AddHttpClient("MyHttpClient", client =>
 {
-    client.BaseAddress = new Uri(configuration["CheckFront_Api_Url"]);
-
+    string? uriCheckFront = configuration["CheckFront_Api_Url"];
+    if (uriCheckFront != null)
+    {
+        client.BaseAddress = new Uri(uriCheckFront);
+    }
     // Additional configuration options for the HttpClient can be set here
 });
 
@@ -54,9 +57,11 @@ app.UseAntiforgery();
 // Custom middleware to add the X-Frame-Options header
 app.Use(async (context, next) =>
 {
-    string allowUri = configuration["X-Frame-Options ALLOW-FROM"];
-
-    context.Response.Headers.Append($"X-Frame-Options", "ALLOW-FROM {allowUri}");
+    string? allowUri = configuration["X-Frame-Options ALLOW-FROM"];
+    if (allowUri != null)
+    {
+        context.Response.Headers.Append($"X-Frame-Options", "ALLOW-FROM {allowUri}");
+    }
     await next();
 });
 

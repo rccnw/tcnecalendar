@@ -214,7 +214,7 @@
     protected async override Task OnInitializedAsync()
     {
 
-        base.OnInitializedAsync();
+        await base.OnInitializedAsync();
         DataSource = new List<ScheduleData.AppointmentData>();  // TODO testing to see if priming the SyncFusion code helps
 
         //await Task.Delay(500);

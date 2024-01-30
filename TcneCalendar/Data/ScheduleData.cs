@@ -25,10 +25,5 @@ namespace TcneCalendar.Data
             public string EndTimezone { get; set; } = string.Empty;
             public string CssClass { get; set; } = string.Empty;
         }
-        public class ResourceData : AppointmentData
-        {
-            public int ProjectId { get; set; }
-            public int CategoryId { get; set; }
-        }
     }
 }

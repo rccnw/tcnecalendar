@@ -5,7 +5,7 @@
 
 @using Syncfusion.Blazor.Schedule
 @using Syncfusion.Blazor.SplitButtons
-@using TcneCalendar.Data
+@using TcneCalendar.Models
 @using Microsoft.Extensions.Caching.Memory
 @using TcneCalendar
 @using System.Threading.Tasks;
@@ -46,8 +46,7 @@
 
     <br /> 
     <br />
-    <SfSchedule 
-        TValue="ScheduleData.AppointmentData" 
+    <SfSchedule TValue="SchedulerAppointmentData"
         Readonly = "true"
         AllowDragAndDrop="false" 
         ShowQuickInfo="false" 
@@ -206,7 +205,7 @@
 
 
 
-    public List<ScheduleData.AppointmentData> DataSource;
+    public List<SchedulerAppointmentData> DataSource;
     View CurrentView = View.Day;
 
 
@@ -216,7 +215,7 @@
     {
 
         await base.OnInitializedAsync();
-        DataSource = new List<ScheduleData.AppointmentData>();  // TODO testing to see if priming the SyncFusion code helps
+        DataSource = new List<SchedulerAppointmentData>();  // TODO testing to see if priming the SyncFusion code helps
 
         //await Task.Delay(500);
 
@@ -236,7 +235,7 @@
 
      //   List<ScheduleData.AppointmentData> listAppts = await AzureStorage.UpdateStorageAccount(http, Configuration, displayLocation);
 
-      List<ScheduleData.AppointmentData> listAppts = await AzureStorage.LoadAppointmentsAzure();
+        List<SchedulerAppointmentData> listAppts = await AzureStorage.LoadAppointmentsAzure();
 
         //var listAppts = new List<ScheduleData.AppointmentData>();        // DEBUG try this give no data to scheduler
       DataSource = listAppts;
@@ -275,13 +274,13 @@
             AzureStorage.InitBlobServiceClient(Configuration);
 
 
-            List<ScheduleData.AppointmentData> listAppts = await AzureStorage.UpdateStorageAccount(http, Configuration, displayLocation);
+            List<SchedulerAppointmentData> listAppts = await AzureStorage.UpdateStorageAccount(http, Configuration, displayLocation);
 
 
 
             //await AzureStorage.SaveAppointmentsAzure(listAppts);
 
-            // List<ScheduleData.AppointmentData> listAppts = await AzureStorage.LoadAppointmentsAzure();
+            // List<AppointmentData> listAppts = await AzureStorage.LoadAppointmentsAzure();
 
             DataSource = listAppts;
 

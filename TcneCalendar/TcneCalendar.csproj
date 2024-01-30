@@ -18,6 +18,9 @@
     <PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.1.47" />
     <PackageReference Include="Syncfusion.Blazor.Themes" Version="24.1.47" />
 </ItemGroup>
+<ItemGroup>
+  <Folder Include="Data\" />
+</ItemGroup>
 
   
 

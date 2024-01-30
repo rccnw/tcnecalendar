@@ -4,7 +4,6 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs;
 using System.Text;
 using Azure.Identity;
-using TcneCalendar.Data;
 using TcneCalendar.Models;
 using static TcneCalendar.Models.CheckFrontBookingDetail;
 using System.Globalization;
@@ -70,9 +69,9 @@ namespace TcneCalendar
             _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
         }
 
-        public static async Task<List<ScheduleData.AppointmentData>> UpdateStorageAccount(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
+        public static async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
         {
-            List<ScheduleData.AppointmentData> listAppointments = new List<ScheduleData.AppointmentData>();
+            List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
 
             if (_updateStorageAccount)
             {
@@ -87,9 +86,9 @@ namespace TcneCalendar
 
 
 
-        private async static Task<List<ScheduleData.AppointmentData>> GetAppointments(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
+        private async static Task<List<SchedulerAppointmentData>> GetAppointments(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
         {
-            List<ScheduleData.AppointmentData> listAppointments = new List<ScheduleData.AppointmentData>();
+            List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
             var service = new CheckFrontApiService(httpClient, Configuration);
             // ensure CheckFront API is available
     
@@ -283,12 +282,12 @@ namespace TcneCalendar
 
 
 
-        private static List<ScheduleData.AppointmentData> ConvertModelToApptData(Root modelData, string displayLocation)
+        private static List<SchedulerAppointmentData> ConvertModelToApptData(Root modelData, string displayLocation)
         {
 
             Debug.WriteLine("ConvertModelToApptData");
 
-            List<ScheduleData.AppointmentData> appointmentData = new();
+            List<SchedulerAppointmentData> appointmentData = new();
 
             Debug.WriteLine("ConvertModelToApptData");
             Debug.WriteLine("===================================");
@@ -362,7 +361,7 @@ namespace TcneCalendar
                     if ((displayLocation == "nest") && (location == "Nest"))
                     {
                         // add a SyncFusion AppointmentData object to the collection
-                        appointmentData.Add(new ScheduleData.AppointmentData
+                        appointmentData.Add(new SchedulerAppointmentData
                         {
                             Id = id,
                             Subject = subject,
@@ -375,7 +374,7 @@ namespace TcneCalendar
                     else if ((displayLocation == "hideout") && (location == "Hideout"))
                     {
                         // add a SyncFusion AppointmentData object to the collection
-                        appointmentData.Add(new ScheduleData.AppointmentData
+                        appointmentData.Add(new SchedulerAppointmentData
                         {
                             Id = id,
                             Subject = subject,
@@ -388,7 +387,7 @@ namespace TcneCalendar
                     else
                     {
                         // add a SyncFusion AppointmentData object to the collection
-                        appointmentData.Add(new ScheduleData.AppointmentData
+                        appointmentData.Add(new SchedulerAppointmentData
                         {
                             Id = id,
                             Subject = subject,
@@ -440,11 +439,11 @@ namespace TcneCalendar
 
 
 
-        static public async Task SaveAppointmentsAzure(List<ScheduleData.AppointmentData> listAppointments)
+        static public async Task SaveAppointmentsAzure(List<SchedulerAppointmentData> listAppointments)
         {
             await _blobContainerClient.CreateIfNotExistsAsync();
 
-            string jsonString = JsonSerializer.Serialize<List<ScheduleData.AppointmentData>>(listAppointments);
+            string jsonString = JsonSerializer.Serialize<List<SchedulerAppointmentData>>(listAppointments);
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
 
             var blobClient = _blobContainerClient.GetBlobClient(_blobName);
@@ -483,7 +482,7 @@ namespace TcneCalendar
         }
 
 
-        static public async Task<List<ScheduleData.AppointmentData>> LoadAppointmentsAzure()
+        static public async Task<List<SchedulerAppointmentData>> LoadAppointmentsAzure()
         {
             //  InitBlobServiceClient();
 
@@ -531,7 +530,7 @@ namespace TcneCalendar
                     byte[] byteArray = Encoding.UTF8.GetBytes(blobContents);
                     using (MemoryStream stream = new MemoryStream(byteArray))
                     {
-                        List<ScheduleData.AppointmentData>? list = await JsonSerializer.DeserializeAsync<List<ScheduleData.AppointmentData>>(stream);
+                        List<SchedulerAppointmentData>? list = await JsonSerializer.DeserializeAsync<List<SchedulerAppointmentData>>(stream);
                         if (list != null)
                         {
                             return list;
@@ -543,7 +542,7 @@ namespace TcneCalendar
             {
                 Console.WriteLine(ex.Message);
             }
-            return new List<ScheduleData.AppointmentData>();
+            return new List<SchedulerAppointmentData>();
         }
     }
 }

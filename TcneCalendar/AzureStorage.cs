@@ -5,8 +5,8 @@ using Azure.Storage.Blobs;
 using System.Text;
 using Azure.Identity;
 using TcneCalendar.Models;
-using static TcneCalendar.Models.CheckFrontBookingDetail;
 using System.Globalization;
+using Microsoft.Extensions.Configuration;
 
 
 namespace TcneCalendar
@@ -25,19 +25,46 @@ namespace TcneCalendar
     /// 
     /// </summary>
 
-    public static class AzureStorage
+    public class AzureStorage
     {
-        static BlobServiceClient _blobServiceClient;
-        static BlobContainerClient _blobContainerClient;
+        private readonly HttpClient _httpClient;
+        private IConfiguration? _configuration;
 
 
-        static string? _accountName = string.Empty;
-        static string? _containerName = string.Empty;
-        static string? _blobName = string.Empty;
-        static string? _storageKey = string.Empty;
-        static string? _storageConnectionString = string.Empty;
-        static bool    _updateStorageAccount = false;
+        BlobServiceClient _blobServiceClient;
+        BlobContainerClient _blobContainerClient;
 
+
+       string? _accountName;
+       string? _containerName;
+       string? _blobName;
+       string? _storageKey;
+       string? _storageConnectionString;
+       bool    _updateStorageAccount;
+
+        public AzureStorage(HttpClient httpClient, IConfiguration configuration)
+        {
+            _httpClient = httpClient;
+            _configuration = configuration;
+
+            _accountName                = string.Empty;
+            _containerName              = string.Empty;
+            _blobName                   = string.Empty;
+            _storageKey                 = string.Empty;
+            _storageConnectionString    = string.Empty;
+            _updateStorageAccount       = false;
+
+            _accountName                = _configuration["AzureStorageAccountName"];
+            _containerName              = _configuration["AzureStorageAccountContainerName"];
+            _blobName                   = _configuration["AzureStorageBlobName"];
+            _storageKey                 = _configuration["StorageKey"];
+            _storageConnectionString    = _configuration["StorageConnectionString"];
+
+            _updateStorageAccount       = _configuration.GetValue<bool>("UpdateStorageAccount");
+
+            _blobServiceClient         = new BlobServiceClient(_storageConnectionString);
+            _blobContainerClient        = _blobServiceClient.GetBlobContainerClient(_containerName);
+        }
 
         //        static ILogger<AzureStorage> _logger;
 
@@ -51,27 +78,27 @@ namespace TcneCalendar
         /// </summary>
         /// <param name="Configuration"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static void InitBlobServiceClient(IConfiguration Configuration)  // , ILogger<AzureStorage> logger
-        {
-            // var credential = new DefaultAzureCredential();  this was for MSI
+        //public void InitBlobServiceClient(IConfiguration Configuration)  // , ILogger<AzureStorage> logger
+        //{
+        //    // var credential = new DefaultAzureCredential();  this was for MSI
 
-            if (Configuration == null)
-            {
-                throw new ArgumentNullException(nameof(Configuration));
-            }
+        //    if (Configuration == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(Configuration));
+        //    }
 
-            _accountName = Configuration["AzureStorageAccountName"];   
+        //    _accountName = Configuration["AzureStorageAccountName"];   
 
-            _containerName          = Configuration["AzureStorageAccountContainerName"];
-            _blobName               = Configuration["AzureStorageBlobName"];
-            _storageKey             = Configuration["StorageKey"];
-            _storageConnectionString = Configuration["StorageConnectionString"];
+        //    _containerName          = Configuration["AzureStorageAccountContainerName"];
+        //    _blobName               = Configuration["AzureStorageBlobName"];
+        //    _storageKey             = Configuration["StorageKey"];
+        //    _storageConnectionString = Configuration["StorageConnectionString"];
 
-            _updateStorageAccount = Configuration.GetValue<bool>("UpdateStorageAccount");
+        //    _updateStorageAccount = Configuration.GetValue<bool>("UpdateStorageAccount");
 
-            _blobServiceClient = new BlobServiceClient(_storageConnectionString);
-            _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
-        }
+        //    _blobServiceClient = new BlobServiceClient(_storageConnectionString);
+        //    _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
+        //}
 
         /// <summary>
         /// UpdateStorageAccount
@@ -80,7 +107,7 @@ namespace TcneCalendar
         /// <param name="Configuration"></param>
         /// <param name="displayLocation"></param>
         /// <returns></returns>
-        public static async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
+        public async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
         {
             List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
 
@@ -91,7 +118,8 @@ namespace TcneCalendar
                 await SaveAppointmentsAzure(listAppointments);
             }
             // in any case, fetch the list of appointments from Azure Storage
-            listAppointments = await AzureStorage.LoadAppointmentsAzure(displayLocation);
+            var azureStorage = new AzureStorage(httpClient, Configuration);
+            listAppointments = await azureStorage.LoadAppointmentsAzure(displayLocation);
             return listAppointments;
         }
 
@@ -105,7 +133,7 @@ namespace TcneCalendar
         /// <param name="displayLocation"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private async static Task<List<SchedulerAppointmentData>> GetAppointments(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
+        private async Task<List<SchedulerAppointmentData>> GetAppointments(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
         {
             List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
             var service = new CheckFrontApiService(httpClient, Configuration);
@@ -162,11 +190,11 @@ namespace TcneCalendar
                     // this will get the detail for a single booking.
                     string jsonDetail = await service.GetJsonCheckFrontApiAsync(detailUrl, token).ConfigureAwait(false);
 
-                    RootObject? detailModel = new RootObject();
+                    CheckFrontBookingDetail.RootObject? detailModel = new CheckFrontBookingDetail.RootObject();
 
                     try
                     {
-                        detailModel = JsonSerializer.Deserialize<RootObject>(jsonDetail);
+                        detailModel = JsonSerializer.Deserialize<CheckFrontBookingDetail.RootObject>(jsonDetail);
 
                     }
                     catch (JsonException ex)
@@ -200,7 +228,7 @@ namespace TcneCalendar
                             // in the event there are 2 or more, then the requirement is to compute the total duration of the booking.
                             // to do that, iterate the items collection and capture the latest enddate and use that for the enddate of the booking
 
-                            foreach (KeyValuePair<string, Item> detailItem in detailModel.BookingDetail.Items)
+                            foreach (KeyValuePair<string, CheckFrontBookingDetail.Item> detailItem in detailModel.BookingDetail.Items)
                             {
                                 booking.Studio = detailItem.Value.Studio;
                                 booking.EndDate = detailItem.Value.EndDate;
@@ -237,7 +265,7 @@ namespace TcneCalendar
         /// <param name="modelData"></param>
         /// <param name="displayLocation"></param>
         /// <returns></returns>
-        private static List<SchedulerAppointmentData> ConvertModelToApptData(List<Booking> modelData, string displayLocation)
+        private List<SchedulerAppointmentData> ConvertModelToApptData(List<Booking> modelData, string displayLocation)
         {
 
             Debug.WriteLine("ConvertModelToApptData");
@@ -369,7 +397,7 @@ namespace TcneCalendar
         /// </summary>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        //public static DateTime ConvertTimeStamp(long timestamp)
+        //public DateTime ConvertTimeStamp(long timestamp)
         //{
         //    long unixTime = timestamp;
 
@@ -428,7 +456,7 @@ namespace TcneCalendar
         //}
 
 
-        public static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
+        public DateTime UnixTimeStampToDateTime(long unixTimeStamp)
         {
             // Convert Unix timestamp to DateTime in UTC
             DateTime utcDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTimeStamp);
@@ -458,7 +486,7 @@ namespace TcneCalendar
     /// <param name="listAppointments"></param>
     /// <returns></returns>
 
-    static public async Task SaveAppointmentsAzure(List<SchedulerAppointmentData> listAppointments)
+    public async Task SaveAppointmentsAzure(List<SchedulerAppointmentData> listAppointments)
         {
             await _blobContainerClient.CreateIfNotExistsAsync();
 
@@ -506,7 +534,7 @@ namespace TcneCalendar
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
 
-        static public async Task<List<SchedulerAppointmentData>> LoadAppointmentsAzure(string displayLocation)
+        public async Task<List<SchedulerAppointmentData>> LoadAppointmentsAzure(string displayLocation)
         {
             //  InitBlobServiceClient();
 
@@ -574,7 +602,7 @@ namespace TcneCalendar
         /// <param name="list"></param>
         /// <param name="displayLocation"></param>
         /// <returns></returns>
-        static private List<SchedulerAppointmentData> FilterByDisplayLocation(List<SchedulerAppointmentData> list, string displayLocation)
+        private List<SchedulerAppointmentData> FilterByDisplayLocation(List<SchedulerAppointmentData> list, string displayLocation)
         {
             List<SchedulerAppointmentData> filteredList = new List<SchedulerAppointmentData>();
 

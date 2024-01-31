@@ -4,9 +4,9 @@ using System.Diagnostics;
 
 namespace TcneCalendar
 {
-    public class CheckFrontApi
-    {
-    }
+    //public class CheckFrontApi
+    //{
+    //}
 
     public class CheckFrontApiService
     {  

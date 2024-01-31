@@ -201,8 +201,9 @@
 
     private async Task RefreshDataSource()
     {
-        AzureStorage.InitBlobServiceClient(Configuration);
-        List<SchedulerAppointmentData> listAppts = await AzureStorage.LoadAppointmentsAzure(displayLocation);
+        //AzureStorage.InitBlobServiceClient(Configuration);
+        var azureStorage = new AzureStorage(http, Configuration);
+        List<SchedulerAppointmentData> listAppts = await azureStorage.LoadAppointmentsAzure(displayLocation);
         DataSource = listAppts;
         StateHasChanged();  
         Debug.WriteLine("RefreshSchedule() called  listAppts.Count:  {listAppts.Count}");
@@ -214,8 +215,9 @@
         {
             displayLocation = "all";
 
-            AzureStorage.InitBlobServiceClient(Configuration);
-            List<SchedulerAppointmentData> listAppts = await AzureStorage.UpdateStorageAccount(http, Configuration, displayLocation);
+            //AzureStorage.InitBlobServiceClient(Configuration);
+            var azureStorage = new AzureStorage(http, Configuration);
+            List<SchedulerAppointmentData> listAppts = await azureStorage.UpdateStorageAccount(http, Configuration, displayLocation);
 
             await RefreshDataSource();
 

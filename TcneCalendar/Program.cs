@@ -25,15 +25,19 @@ builder.Services.AddHttpClient("MyHttpClient", client =>
 
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 
-//builder.Services.AddLogging();
+builder.Services.AddLogging();
+
 builder.Services.AddHttpClient();
 //builder.Services.AddMemoryCache();
 
 
-// TODO needed >>>>>>>>>>>>>>>>>>>
 builder.Services.AddAzureClients(clientBuilder =>
 {
-    clientBuilder.AddBlobServiceClient(builder.Configuration["StorageConnectionString:blob"], preferMsi: true);
+    string? cs = configuration["StorageConnectionString:blob"];
+    if (!String.IsNullOrEmpty(cs))
+    {
+        clientBuilder.AddBlobServiceClient(cs, preferMsi: true);
+    }
 });
 
 

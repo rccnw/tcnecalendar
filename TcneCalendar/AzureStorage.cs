@@ -7,6 +7,7 @@ using Azure.Identity;
 using TcneCalendar.Models;
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 
 namespace TcneCalendar
@@ -28,24 +29,30 @@ namespace TcneCalendar
     public class AzureStorage
     {
         private readonly HttpClient _httpClient;
-        private IConfiguration? _configuration;
+        private IConfiguration?     _configuration;
+        BlobServiceClient           _blobServiceClient;
+        BlobContainerClient         _blobContainerClient;
 
+        string? _accountName;
+        string? _containerName;
+        string? _blobName;
+        string? _storageKey;
+        string? _storageConnectionString;
+        bool    _updateStorageAccount;
 
-        BlobServiceClient _blobServiceClient;
-        BlobContainerClient _blobContainerClient;
+        ILogger<AzureStorage> _logger;
 
-
-       string? _accountName;
-       string? _containerName;
-       string? _blobName;
-       string? _storageKey;
-       string? _storageConnectionString;
-       bool    _updateStorageAccount;
-
-        public AzureStorage(HttpClient httpClient, IConfiguration configuration)
+        /// <summary>
+        /// AzureStorage ctor
+        /// </summary>
+        /// <param name="httpClient"></param>
+        /// <param name="configuration"></param>
+        /// <param name="logger"></param>
+        public AzureStorage(HttpClient httpClient, IConfiguration configuration, ILogger<AzureStorage> logger)
         {
-            _httpClient = httpClient;
-            _configuration = configuration;
+            _httpClient     = httpClient;
+            _configuration  = configuration;
+            _logger         = logger;
 
             _accountName                = string.Empty;
             _containerName              = string.Empty;
@@ -66,39 +73,7 @@ namespace TcneCalendar
             _blobContainerClient        = _blobServiceClient.GetBlobContainerClient(_containerName);
         }
 
-        //        static ILogger<AzureStorage> _logger;
 
-        //static AzureStorage(IConfiguration Configuration) 
-        //{ 
-
-        //}
-
-        /// <summary>
-        /// InitBlobServiceClient
-        /// </summary>
-        /// <param name="Configuration"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        //public void InitBlobServiceClient(IConfiguration Configuration)  // , ILogger<AzureStorage> logger
-        //{
-        //    // var credential = new DefaultAzureCredential();  this was for MSI
-
-        //    if (Configuration == null)
-        //    {
-        //        throw new ArgumentNullException(nameof(Configuration));
-        //    }
-
-        //    _accountName = Configuration["AzureStorageAccountName"];   
-
-        //    _containerName          = Configuration["AzureStorageAccountContainerName"];
-        //    _blobName               = Configuration["AzureStorageBlobName"];
-        //    _storageKey             = Configuration["StorageKey"];
-        //    _storageConnectionString = Configuration["StorageConnectionString"];
-
-        //    _updateStorageAccount = Configuration.GetValue<bool>("UpdateStorageAccount");
-
-        //    _blobServiceClient = new BlobServiceClient(_storageConnectionString);
-        //    _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
-        //}
 
         /// <summary>
         /// UpdateStorageAccount
@@ -107,19 +82,18 @@ namespace TcneCalendar
         /// <param name="Configuration"></param>
         /// <param name="displayLocation"></param>
         /// <returns></returns>
-        public async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
+        public async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(string displayLocation)
         {
             List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
 
             if (_updateStorageAccount)
             {
-                listAppointments = await GetAppointments(httpClient, Configuration, displayLocation);
+                listAppointments = await GetAppointments(displayLocation);
                 Debug.WriteLine($"listAppointments.Count: {listAppointments.Count}");
                 await SaveAppointmentsAzure(listAppointments);
             }
-            // in any case, fetch the list of appointments from Azure Storage
-            var azureStorage = new AzureStorage(httpClient, Configuration);
-            listAppointments = await azureStorage.LoadAppointmentsAzure(displayLocation);
+            // in any case, fetch the list of appointments 
+            listAppointments = await LoadAppointmentsAzure(displayLocation);
             return listAppointments;
         }
 
@@ -133,23 +107,37 @@ namespace TcneCalendar
         /// <param name="displayLocation"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private async Task<List<SchedulerAppointmentData>> GetAppointments(HttpClient httpClient, IConfiguration Configuration, string displayLocation)
+        private async Task<List<SchedulerAppointmentData>> GetAppointments(string displayLocation)
         {
             List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
-            var service = new CheckFrontApiService(httpClient, Configuration);
-            // ensure CheckFront API is available
-    
-
-            bool apiReady = await service.PingCheckFrontApi();
-            if (!apiReady) { throw new Exception(); }       // TODO this needs to be handled better - display in UI and send email
 
 
-            var apiUrl = Configuration["CheckFront_Api_Url"];
-            var limit = Configuration["CheckFrontApiLimit"];
+            var service = _configuration != null ? new CheckFrontApiService(_httpClient, _configuration) : null;
+            if (service != null)
+            {
+                bool apiReady = await service.PingCheckFrontApi();  // ensure CheckFront API is available
+                if (!apiReady)
+                {
+                    _logger.LogError("GetAppointments:  PingCheckFrontApi false - CheckFront service is not responding");
+                    throw new Exception();  
+                }
+            }
+            else
+            {
+                // Handle the case when _configuration is null
+                _logger.LogError("GetAppointments:  _configuration is null");
+                throw new Exception();
+            }        
+
+            if (_configuration==null)
+            {
+                _logger.LogError("GetAppointments:  _configuration is null");
+                throw new Exception();
+            }
+            var apiUrl  = _configuration["CheckFront_Api_Url"];
+            var limit   = _configuration["CheckFrontApiLimit"];
 
             string bookingUrl = apiUrl + $"?limit=" + limit;    // use query param to set limit of records returned (CheckFront default is 100)
-
-
 
             // Get a new list of appointments from CheckFront
             var token = service.GetBasicAuthToken();

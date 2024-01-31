@@ -14,7 +14,9 @@
 @inject IConfiguration Configuration
 @inject HttpClient http
 @* @inject IMemoryCache MemoryCache *@
-@* @inject ILogger<Index> Logger *@
+@inject ILoggerFactory LoggerFactory
+
+@inject ILogger<Index> Logger
 
 
 <PageTitle>TCNE Calendar</PageTitle>
@@ -170,24 +172,27 @@
 
     public async void NestButton()
     {
+        Logger.LogInformation("NestButton() called");
         displayLocation = "nest";
         await RefreshDataSource();
     }
 
     public async void HideoutButton()
     {
+        Logger.LogInformation("HideoutButton() called");
         displayLocation = "hideout";
         await RefreshDataSource();
     }
 
     public async void AllButton()
     {
+        Logger.LogInformation("AllButton() called");
         displayLocation = "all";
         await RefreshDataSource();
     }
 
 
-    public List<SchedulerAppointmentData> DataSource;   // Scheduler Appointment Data
+    public List<SchedulerAppointmentData>? DataSource;   // Scheduler Appointment Data
 
     View CurrentView = View.Day;
 
@@ -198,15 +203,15 @@
     }
 
 
-
     private async Task RefreshDataSource()
     {
-        //AzureStorage.InitBlobServiceClient(Configuration);
-        var azureStorage = new AzureStorage(http, Configuration);
+        var logger = LoggerFactory.CreateLogger<AzureStorage>();
+        var azureStorage = new AzureStorage(http, Configuration, logger);
         List<SchedulerAppointmentData> listAppts = await azureStorage.LoadAppointmentsAzure(displayLocation);
         DataSource = listAppts;
         StateHasChanged();  
         Debug.WriteLine("RefreshSchedule() called  listAppts.Count:  {listAppts.Count}");
+        Logger.LogInformation("RefreshSchedule() called  listAppts.Count:  {listAppts.Count}");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -215,9 +220,9 @@
         {
             displayLocation = "all";
 
-            //AzureStorage.InitBlobServiceClient(Configuration);
-            var azureStorage = new AzureStorage(http, Configuration);
-            List<SchedulerAppointmentData> listAppts = await azureStorage.UpdateStorageAccount(http, Configuration, displayLocation);
+            var logger = LoggerFactory.CreateLogger<AzureStorage>();
+            var azureStorage = new AzureStorage(http, Configuration, logger);
+            List<SchedulerAppointmentData> listAppts = await azureStorage.UpdateStorageAccount(displayLocation);
 
             await RefreshDataSource();
 

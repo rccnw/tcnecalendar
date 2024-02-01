@@ -19,12 +19,12 @@ namespace CheckFrontAzureFunction
         [Function("Function1")]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
+            _logger.LogInformation($"Tcne HTTP Function activated :  {DateTime.Now}");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-            response.WriteString("Welcome to Azure Functions!");
+            response.WriteString("TCNE function activated");
 
             return response;
         }

@@ -21,6 +21,7 @@
 <ItemGroup>
   <Folder Include="Data\" />
 </ItemGroup>
+<Import Project="..\TcneShared\TcneShared.projitems" Label="Shared" />
 
   
 

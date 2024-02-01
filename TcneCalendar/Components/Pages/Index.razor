@@ -30,11 +30,32 @@
 
 <div class="controlregion">
 
+    <div class="btn-group" role="group" aria-label="Studio Selector">
+        <button 
+            type="button"
+            class="btn @(activeButton == "NestButton" ? "btn btn-primary active" : "btn btn-primary")"
+                @onclick='() => NestButton("NestButton")'
+            style="width:120px">
+            Nest
+         </button>
 
-    <div class="btn-group" role="group" aria-label="Basic example">
-        <button type="button" @onclick="NestButton"    class=" btn btn-primary" style="width:120px">Nest</button>
-        <button type="button" @onclick="HideoutButton" class="btn btn-primary"  style="width:120px">Hideout</button>
-        <button type="button" @onclick="AllButton"     class="btn btn-primary active"  style="width:120px">All</button>
+        <button 
+            type="button" 
+            class="btn @(activeButton == "HideoutButton" ? "btn btn-primary active" : "btn btn-primary")"
+                @onclick='() => HideoutButton("HideoutButton")'
+            style="width:120px">
+            Hideout
+        </button>
+
+        <button 
+            type="button" 
+            class="btn @(activeButton == "AllButton" ? "btn btn-primary active" : "btn btn-primary")"
+                @onclick='() => AllButton("AllButton")'
+            style="width:120px">
+            All
+        </button>
+
+
     </div>
     <br />
     <br />
@@ -62,6 +83,18 @@
 </div>
 
 <style>
+
+
+
+    .btn-group .btn.active {
+        border-color: red;
+    }
+
+/*     .btn-group .btn.active:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        border-color: red;
+    } */
+
 
     .ulstyle {
         margin-top: 10px;
@@ -164,29 +197,34 @@
 
 </style>
 
-@code {
+@code {    
 
     public DateTime CurrentDate = DateTime.Now;
-
     string displayLocation = "nest";
+    private string activeButton = "AllButton"; // Default active button
 
-    public async void NestButton()
+
+
+    public async void NestButton(string buttonId)
     {
         Logger.LogInformation("NestButton() called");
+        activeButton = buttonId;
         displayLocation = "nest";
         await RefreshDataSource();
     }
 
-    public async void HideoutButton()
+    public async void HideoutButton(string buttonId)
     {
         Logger.LogInformation("HideoutButton() called");
+        activeButton = buttonId;
         displayLocation = "hideout";
         await RefreshDataSource();
     }
 
-    public async void AllButton()
+    public async void AllButton(string buttonId)
     {
         Logger.LogInformation("AllButton() called");
+        activeButton = buttonId;
         displayLocation = "all";
         await RefreshDataSource();
     }
@@ -219,6 +257,7 @@
         if (firstRender)
         {
             displayLocation = "all";
+            AllButton("AllButton");
 
             var logger = LoggerFactory.CreateLogger<AzureStorage>();
             var azureStorage = new AzureStorage(http, Configuration, logger);

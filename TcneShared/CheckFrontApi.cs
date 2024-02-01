@@ -2,23 +2,31 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace TcneShared
 {
     public class CheckFrontApiService
     {
-        private readonly HttpClient _httpClient;
-        private IConfiguration? _configuration;
+        private readonly HttpClient     _httpClient;
+        private IConfiguration?         _configuration;
+        ILogger<CheckFrontApiService>   _logger;
 
-
-        public CheckFrontApiService(HttpClient httpClient, IConfiguration configuration)
+        public CheckFrontApiService(
+            IHttpClientFactory httpClientFactory, 
+            IConfiguration configuration, 
+            ILogger<CheckFrontApiService> logger)
         {
-            _httpClient = httpClient;
-            _configuration = configuration;
+            _httpClient     = httpClientFactory.CreateClient();
+            _configuration  = configuration;
+            _logger         = logger;
+            _logger.LogInformation("CheckFrontApiService Constructor");
         }
 
         public string GetBasicAuthToken()
         {
+            _logger.LogInformation("GetBasicAuthToken");
+
             if (_configuration == null)
             {
                 throw new ArgumentNullException(nameof(_configuration));
@@ -32,6 +40,8 @@ namespace TcneShared
 
         public async Task<bool> PingCheckFrontApi()
         {
+            _logger.LogInformation("PingCheckFrontApi");
+
             if (_configuration == null)
             {
                 throw new ArgumentNullException(nameof(_configuration));
@@ -52,6 +62,7 @@ namespace TcneShared
 
         public async Task<string> GetJsonCheckFrontApiAsync(string apiUrl, string token)
         {
+            _logger.LogInformation("GetJsonCheckFrontApiAsync");
 
             // Log the request details
             Debug.WriteLine($"HTTP GET Request to: {apiUrl}");

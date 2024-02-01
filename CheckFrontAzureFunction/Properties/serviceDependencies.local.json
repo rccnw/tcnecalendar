@@ -6,6 +6,16 @@
     "storage1": {
       "type": "storage.emulator",
       "connectionId": "AzureWebJobsStorage"
+    },
+    "secrets1": {
+      "type": "secrets.user"
+    },
+    "storage2": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ServiceLinker/locations/westus3/connectors/StorageConnectionString_41BE77BCE0",
+      "secretStore": "LocalSecretsFile",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/tcne",
+      "type": "storage.azure",
+      "connectionId": "StorageConnectionString"
     }
   }
 }

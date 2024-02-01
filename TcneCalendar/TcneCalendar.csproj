@@ -12,6 +12,7 @@
 	    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.1" />
 	    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
 	    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
+	    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.1" />
 	    <PackageReference Include="Syncfusion.Blazor.Layouts" Version="24.1.47" />
     <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="24.1.47" />
     <PackageReference Include="Syncfusion.Blazor.Schedule" Version="24.1.47" />

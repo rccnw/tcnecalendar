@@ -3,6 +3,8 @@ using TcneCalendar;
 using TcneCalendar.Components;
 using Microsoft.Extensions.Azure;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging.AzureAppServices;
+using TcneShared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,22 +15,39 @@ builder.Services.AddSyncfusionBlazor();
 
 var configuration = builder.Configuration;
 
-builder.Services.AddHttpClient("MyHttpClient", client =>
-{
-    string? uriCheckFront = configuration["CheckFront_Api_Url"];
-    if (uriCheckFront != null)
-    {
-        client.BaseAddress = new Uri(uriCheckFront);
-    }
-    // Additional configuration options for the HttpClient can be set here
-});
+//builder.Services.AddHttpClient("MyHttpClient", client =>
+//{
+//    string? uriCheckFront = configuration["CheckFront_Api_Url"];
+//    if (uriCheckFront != null)
+//    {
+//        client.BaseAddress = new Uri(uriCheckFront);
+//    }
+//    // Additional configuration options for the HttpClient can be set here
+//});
 
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+builder.Services.AddSingleton<CheckFrontApiService>();
+builder.Services.AddSingleton<AzureStorage>();
 
 builder.Services.AddLogging();
-
 builder.Services.AddHttpClient();
 //builder.Services.AddMemoryCache();
+
+// Azure App Service logging
+builder.Logging.AddAzureWebAppDiagnostics();
+
+builder.Services.Configure <AzureFileLoggerOptions>(options =>
+{
+    options.FileName = "log.txt";
+    options.FileSizeLimit = 50 * 1024;
+    options.RetainedFileCountLimit = 5;
+});
+
+builder.Services.Configure<AzureBlobLoggerOptions>(options =>
+{
+    options.BlobName = "log.txt";
+});  
+
 
 
 builder.Services.AddAzureClients(clientBuilder =>
@@ -39,6 +58,10 @@ builder.Services.AddAzureClients(clientBuilder =>
         clientBuilder.AddBlobServiceClient(cs, preferMsi: true);
     }
 });
+
+
+
+
 
 
 var app = builder.Build();

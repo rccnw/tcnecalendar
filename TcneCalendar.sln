@@ -10,6 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		notes.txt = notes.txt
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheckFrontAzureFunction", "CheckFrontAzureFunction\CheckFrontAzureFunction.csproj", "{64A4C933-68DE-4B39-B93D-5B4B56C870BE}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TcneShared", "TcneShared\TcneShared.shproj", "{C36D12E1-20B0-419C-AD7C-359921079E04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,11 +24,20 @@ Global
 		{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0605A5DE-A1C1-4DC0-B01D-C3463FE50593}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64A4C933-68DE-4B39-B93D-5B4B56C870BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64A4C933-68DE-4B39-B93D-5B4B56C870BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64A4C933-68DE-4B39-B93D-5B4B56C870BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64A4C933-68DE-4B39-B93D-5B4B56C870BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8E7FDEB1-3508-43FE-97A3-CFFFF030CD3B}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		TcneShared\TcneShared.projitems*{0605a5de-a1c1-4dc0-b01d-c3463fe50593}*SharedItemsImports = 5
+		TcneShared\TcneShared.projitems*{64a4c933-68de-4b39-b93d-5b4b56c870be}*SharedItemsImports = 5
+		TcneShared\TcneShared.projitems*{c36d12e1-20b0-419c-ad7c-359921079e04}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

@@ -4,7 +4,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs;
 using System.Text;
 using Azure.Identity;
-using TcneCalendar.Models;
+using TcneShared.Models;
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

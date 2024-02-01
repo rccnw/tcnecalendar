@@ -41,7 +41,9 @@ namespace TcneShared
         string? _storageConnectionString;
         bool _updateStorageAccount;
 
-        ILogger<AzureStorage> _logger;
+        ILogger<AzureStorage>   _logger;
+        //ILoggerFactory          _loggerFactory;
+        CheckFrontApiService    _apiService;
 
         /// <summary>
         /// AzureStorage ctor
@@ -49,54 +51,66 @@ namespace TcneShared
         /// <param name="httpClient"></param>
         /// <param name="configuration"></param>
         /// <param name="logger"></param>
-        public AzureStorage(HttpClient httpClient, IConfiguration configuration, ILogger<AzureStorage> logger)
+        public AzureStorage(
+            CheckFrontApiService    apiService,
+            IHttpClientFactory      httpClientFactory,
+            IConfiguration          configuration, 
+            ILogger<AzureStorage>   logger)
         {
-            _httpClient = httpClient;
-            _configuration = configuration;
+            _apiService     = apiService;
+            _httpClient     = httpClientFactory.CreateClient();
+            _configuration  = configuration;
+           // _loggerFactory  = loggerFactory;
+
+            //_logger = loggerFactory.CreateLogger<AzureStorage>();      
             _logger = logger;
 
-            _accountName = string.Empty;
-            _containerName = string.Empty;
-            _blobName = string.Empty;
-            _storageKey = string.Empty;
+            _logger.LogInformation("AzureStorage ctor");
+
+            _accountName            = string.Empty;
+            _containerName          = string.Empty;
+            _blobName               = string.Empty;
+            _storageKey             = string.Empty;
             _storageConnectionString = string.Empty;
-            _updateStorageAccount = false;
+            _updateStorageAccount   = false;
 
-            _accountName = _configuration["AzureStorageAccountName"];
-            _containerName = _configuration["AzureStorageAccountContainerName"];
-            _blobName = _configuration["AzureStorageBlobName"];
-            _storageKey = _configuration["StorageKey"];
+            _accountName            = _configuration["AzureStorageAccountName"];
+            _containerName          = _configuration["AzureStorageAccountContainerName"];
+            _blobName               = _configuration["AzureStorageBlobName"];
+            _storageKey             = _configuration["StorageKey"];
             _storageConnectionString = _configuration["StorageConnectionString"];
+            _updateStorageAccount   = _configuration.GetValue<bool>("UpdateStorageAccount");
 
-            _updateStorageAccount = _configuration.GetValue<bool>("UpdateStorageAccount");
-
-            _blobServiceClient = new BlobServiceClient(_storageConnectionString);
-            _blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            _blobServiceClient      = new BlobServiceClient(_storageConnectionString);
+            _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
         }
 
 
 
         /// <summary>
         /// UpdateStorageAccount
+        /// Not used by Azure Function
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="Configuration"></param>
         /// <param name="displayLocation"></param>
         /// <returns></returns>
-        public async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(string displayLocation)
-        {
-            List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
+        //public async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(string displayLocation)
+        //{
+        //    _logger.LogInformation("UpdateStorageAccount");
 
-            if (_updateStorageAccount)
-            {
-                listAppointments = await GetAppointments(displayLocation);
-                Debug.WriteLine($"listAppointments.Count: {listAppointments.Count}");
-                await SaveAppointmentsAzure(listAppointments);
-            }
-            // in any case, fetch the list of appointments 
-            listAppointments = await LoadAppointmentsAzure(displayLocation);
-            return listAppointments;
-        }
+        //    List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
+
+        //    if (_updateStorageAccount)
+        //    {
+        //        listAppointments = await GetAppointments(displayLocation);
+        //        Debug.WriteLine($"listAppointments.Count: {listAppointments.Count}");
+        //        await SaveAppointmentsAzure(listAppointments);
+        //    }
+        //    // in any case, fetch the list of appointments 
+        //    listAppointments = await LoadAppointmentsAzure(displayLocation);
+        //    return listAppointments;
+        //}
 
 
 
@@ -108,15 +122,18 @@ namespace TcneShared
         /// <param name="displayLocation"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private async Task<List<SchedulerAppointmentData>> GetAppointments(string displayLocation)
+        public async Task<List<SchedulerAppointmentData>> GetAppointments()    // string displayLocation
         {
+            _logger.LogInformation("GetAppointments");
+
             List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
 
+            //ILogger<CheckFrontApiService> logger = _loggerFactory.CreateLogger<CheckFrontApiService>();
 
-            var service = _configuration != null ? new CheckFrontApiService(_httpClient, _configuration) : null;
-            if (service != null)
+            //var service = _configuration != null ? new CheckFrontApiService(_httpClient, _configuration, logger) : null;
+            if (_apiService != null)
             {
-                bool apiReady = await service.PingCheckFrontApi();  // ensure CheckFront API is available
+                bool apiReady = await _apiService.PingCheckFrontApi();  // ensure CheckFront API is available
                 if (!apiReady)
                 {
                     _logger.LogError("GetAppointments:  PingCheckFrontApi false - CheckFront service is not responding");
@@ -141,8 +158,8 @@ namespace TcneShared
             string bookingUrl = apiUrl + $"?limit=" + limit;    // use query param to set limit of records returned (CheckFront default is 100)
 
             // Get a new list of appointments from CheckFront
-            var token = service.GetBasicAuthToken();
-            string bookingJson = await service.GetJsonCheckFrontApiAsync(bookingUrl, token);
+            var token = _apiService.GetBasicAuthToken();
+            string bookingJson = await _apiService.GetJsonCheckFrontApiAsync(bookingUrl, token);
 
             Root? bookingModel = JsonSerializer.Deserialize<Root>(bookingJson);
 
@@ -177,7 +194,7 @@ namespace TcneShared
                     string detailUrl = apiUrl + "/" + booking.BookingId.ToString();
 
                     // this will get the detail for a single booking.
-                    string jsonDetail = await service.GetJsonCheckFrontApiAsync(detailUrl, token).ConfigureAwait(false);
+                    string jsonDetail = await _apiService.GetJsonCheckFrontApiAsync(detailUrl, token).ConfigureAwait(false);
 
                     CheckFrontBookingDetail.RootObject? detailModel = new CheckFrontBookingDetail.RootObject();
 
@@ -243,7 +260,7 @@ namespace TcneShared
                     // booking SHOULD be the booking model that has StartDate, EndDate, Studio
                     Debug.WriteLine("---");
                 }
-                listAppointments = ConvertModelToApptData(futureValidBookings, displayLocation);
+                listAppointments = ConvertModelToApptData(futureValidBookings); //, displayLocation);
             }
             return listAppointments;
         }
@@ -254,8 +271,9 @@ namespace TcneShared
         /// <param name="modelData"></param>
         /// <param name="displayLocation"></param>
         /// <returns></returns>
-        private List<SchedulerAppointmentData> ConvertModelToApptData(List<Booking> modelData, string displayLocation)
+        private List<SchedulerAppointmentData> ConvertModelToApptData(List<Booking> modelData) // , string displayLocation)
         {
+            _logger.LogInformation("ConvertModelToApptData");
 
             Debug.WriteLine("ConvertModelToApptData");
 
@@ -323,49 +341,68 @@ namespace TcneShared
                     //string subject = $"{location} {todStart} - {todEnd}";
                     string subject = $"-{todEnd}"; // this is a hack to get the scheduler to display the end time in the subject field
 
-                    string lcDisplayLocation = displayLocation.ToLower();
-                    string lcLocation = location.ToLower();
 
 
-                    if ((lcDisplayLocation == "nest") && (lcLocation == "nest"))
+
+
+
+
+                    //string lcDisplayLocation = displayLocation.ToLower();
+                    //string lcLocation = location.ToLower();
+
+
+                    //if ((lcDisplayLocation == "nest") && (lcLocation == "nest"))
+                    //{
+                    //    // add a SyncFusion SchedulerAppointmentData object to the collection
+                    //    appointmentData.Add(new SchedulerAppointmentData
+                    //    {
+                    //        Id = id,
+                    //        Subject = subject,
+                    //        Location = location,
+                    //        StartTime = startDateTime,
+                    //        EndTime = endDateTime,
+                    //        CssClass = css
+                    //    });
+                    //}
+                    //else if ((lcDisplayLocation == "hideout") && (lcLocation == "hideout"))
+                    //{
+                    //    // add a SyncFusion AppointmentData object to the collection
+                    //    appointmentData.Add(new SchedulerAppointmentData
+                    //    {
+                    //        Id = id,
+                    //        Subject = subject,
+                    //        Location = location,
+                    //        StartTime = startDateTime,
+                    //        EndTime = endDateTime,
+                    //        CssClass = css
+                    //    });
+                    //}
+                    //else
+                    //{
+                    //    // add a SyncFusion AppointmentData object to the collection
+                    //    appointmentData.Add(new SchedulerAppointmentData
+                    //    {
+                    //        Id = id,
+                    //        Subject = subject,
+                    //        Location = location,
+                    //        StartTime = startDateTime,
+                    //        EndTime = endDateTime,
+                    //        CssClass = css
+                    //    });
+                    //}
+
+                    // add a SyncFusion AppointmentData object to the collection
+                    appointmentData.Add(new SchedulerAppointmentData
                     {
-                        // add a SyncFusion SchedulerAppointmentData object to the collection
-                        appointmentData.Add(new SchedulerAppointmentData
-                        {
-                            Id = id,
-                            Subject = subject,
-                            Location = location,
-                            StartTime = startDateTime,
-                            EndTime = endDateTime,
-                            CssClass = css
-                        });
-                    }
-                    else if ((lcDisplayLocation == "hideout") && (lcLocation == "hideout"))
-                    {
-                        // add a SyncFusion AppointmentData object to the collection
-                        appointmentData.Add(new SchedulerAppointmentData
-                        {
-                            Id = id,
-                            Subject = subject,
-                            Location = location,
-                            StartTime = startDateTime,
-                            EndTime = endDateTime,
-                            CssClass = css
-                        });
-                    }
-                    else
-                    {
-                        // add a SyncFusion AppointmentData object to the collection
-                        appointmentData.Add(new SchedulerAppointmentData
-                        {
-                            Id = id,
-                            Subject = subject,
-                            Location = location,
-                            StartTime = startDateTime,
-                            EndTime = endDateTime,
-                            CssClass = css
-                        });
-                    }
+                        Id = id,
+                        Subject = subject,
+                        Location = location,
+                        StartTime = startDateTime,
+                        EndTime = endDateTime,
+                        CssClass = css
+                    });
+
+
 
                     id++;
                 }
@@ -477,6 +514,8 @@ namespace TcneShared
 
         public async Task SaveAppointmentsAzure(List<SchedulerAppointmentData> listAppointments)
         {
+            _logger.LogInformation("SaveAppointmentsAzure");
+
             await _blobContainerClient.CreateIfNotExistsAsync();
 
             string jsonString = JsonSerializer.Serialize<List<SchedulerAppointmentData>>(listAppointments);
@@ -525,10 +564,8 @@ namespace TcneShared
 
         public async Task<List<SchedulerAppointmentData>> LoadAppointmentsAzure(string displayLocation)
         {
-            //  InitBlobServiceClient();
+            _logger.LogInformation("LoadAppointmentsAzure");
 
-
-            //throw new NotImplementedException();
 
             string data = string.Empty;
 
@@ -593,6 +630,8 @@ namespace TcneShared
         /// <returns></returns>
         private List<SchedulerAppointmentData> FilterByDisplayLocation(List<SchedulerAppointmentData> list, string displayLocation)
         {
+            _logger.LogInformation("FilterByDisplayLocation");
+
             List<SchedulerAppointmentData> filteredList = new List<SchedulerAppointmentData>();
 
             foreach (var item in list)

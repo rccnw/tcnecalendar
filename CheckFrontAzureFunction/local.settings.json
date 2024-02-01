@@ -1,7 +1,21 @@
 {
-    "IsEncrypted": false,
-    "Values": {
-        "AzureWebJobsStorage": "AzureWebJobsStorageConnectionStringValue",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "5cfddd92-7e9b-4a46-95ff-6f92a625a03e"
+  },
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
     }
+  },
+  "CheckFront_Category_Nest": "13",
+  "CheckFront_Category_Hideout": "14",
+  "CheckFront_Api_Url": "https://tcne.checkfront.com/api/3.0/booking",
+  "CheckFront_Api_Ping_Url": "https://tcne.checkfront.com/api/3.0/ping",
+  "CheckFrontApiLimit": "500",
+  "StudioCategoryUnknown": "99",
+  "UpdateStorageAccount": false
 }

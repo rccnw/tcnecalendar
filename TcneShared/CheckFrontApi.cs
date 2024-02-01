@@ -1,23 +1,20 @@
-﻿using System.Net.Http.Headers;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 
-namespace TcneCalendar
+namespace TcneShared
 {
-    //public class CheckFrontApi
-    //{
-    //}
-
     public class CheckFrontApiService
-    {  
+    {
         private readonly HttpClient _httpClient;
         private IConfiguration? _configuration;
 
 
         public CheckFrontApiService(HttpClient httpClient, IConfiguration configuration)
-        {  
-            _httpClient     = httpClient;
-            _configuration  = configuration;
+        {
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         public string GetBasicAuthToken()
@@ -40,7 +37,7 @@ namespace TcneCalendar
                 throw new ArgumentNullException(nameof(_configuration));
             }
             string? pingUrl = _configuration["CheckFront_Api_Ping_Url"];
-            
+
             if (!String.IsNullOrEmpty(pingUrl))
             {
                 //   GET /api/3.0/ping

@@ -10,6 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AppointmentData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AzureStorage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CheckFrontApi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CheckFrontBookingDetailModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CheckFrontBookingsModel.cs" />
   </ItemGroup>

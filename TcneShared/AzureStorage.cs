@@ -31,8 +31,8 @@ namespace TcneShared
     {
         private readonly HttpClient _httpClient;
         private IConfiguration? _configuration;
-        BlobServiceClient _blobServiceClient;
-        BlobContainerClient _blobContainerClient;
+        BlobServiceClient? _blobServiceClient;
+        BlobContainerClient? _blobContainerClient;
 
         string? _accountName;
         string? _containerName;
@@ -59,11 +59,8 @@ namespace TcneShared
         {
             _apiService     = apiService;
             _httpClient     = httpClientFactory.CreateClient();
-            _configuration  = configuration;
-           // _loggerFactory  = loggerFactory;
-
-            //_logger = loggerFactory.CreateLogger<AzureStorage>();      
-            _logger = logger;
+            _configuration  = configuration;   
+            _logger         = logger;
 
             _logger.LogInformation("AzureStorage ctor");
 
@@ -74,44 +71,23 @@ namespace TcneShared
             _storageConnectionString = string.Empty;
             _updateStorageAccount   = false;
 
-            _accountName            = _configuration["AzureStorageAccountName"];
-            _containerName          = _configuration["AzureStorageAccountContainerName"];
-            _blobName               = _configuration["AzureStorageBlobName"];
-            _storageKey             = _configuration["StorageKey"];
-            _storageConnectionString = _configuration["StorageConnectionString"];
-            _updateStorageAccount   = _configuration.GetValue<bool>("UpdateStorageAccount");
+            try
+            {
+                _accountName            = _configuration["AzureStorageAccountName"];
+                _containerName          = _configuration["AzureStorageAccountContainerName"];
+                _blobName               = _configuration["AzureStorageBlobName"];
+                _storageKey             = _configuration["StorageKey"];
+                _storageConnectionString = _configuration["StorageConnectionString"];
+                _updateStorageAccount   = _configuration.GetValue<bool>("UpdateStorageAccount");
 
-            _blobServiceClient      = new BlobServiceClient(_storageConnectionString);
-            _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
+                _blobServiceClient      = new BlobServiceClient(_storageConnectionString);
+                _blobContainerClient    = _blobServiceClient.GetBlobContainerClient(_containerName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
         }
-
-
-
-        /// <summary>
-        /// UpdateStorageAccount
-        /// Not used by Azure Function
-        /// </summary>
-        /// <param name="httpClient"></param>
-        /// <param name="Configuration"></param>
-        /// <param name="displayLocation"></param>
-        /// <returns></returns>
-        //public async Task<List<SchedulerAppointmentData>> UpdateStorageAccount(string displayLocation)
-        //{
-        //    _logger.LogInformation("UpdateStorageAccount");
-
-        //    List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
-
-        //    if (_updateStorageAccount)
-        //    {
-        //        listAppointments = await GetAppointments(displayLocation);
-        //        Debug.WriteLine($"listAppointments.Count: {listAppointments.Count}");
-        //        await SaveAppointmentsAzure(listAppointments);
-        //    }
-        //    // in any case, fetch the list of appointments 
-        //    listAppointments = await LoadAppointmentsAzure(displayLocation);
-        //    return listAppointments;
-        //}
-
 
 
         /// <summary>
@@ -122,15 +98,12 @@ namespace TcneShared
         /// <param name="displayLocation"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<List<SchedulerAppointmentData>> GetAppointments()    // string displayLocation
+        public async Task<List<SchedulerAppointmentData>> GetAppointments()
         {
             _logger.LogInformation("GetAppointments");
 
             List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
 
-            //ILogger<CheckFrontApiService> logger = _loggerFactory.CreateLogger<CheckFrontApiService>();
-
-            //var service = _configuration != null ? new CheckFrontApiService(_httpClient, _configuration, logger) : null;
             if (_apiService != null)
             {
                 bool apiReady = await _apiService.PingCheckFrontApi();  // ensure CheckFront API is available
@@ -142,8 +115,8 @@ namespace TcneShared
             }
             else
             {
-                // Handle the case when _configuration is null
-                _logger.LogError("GetAppointments:  _configuration is null");
+                // Handle the case when _apiService is null
+                _logger.LogError("GetAppointments:  _apiService is null");
                 throw new Exception();
             }
 
@@ -153,7 +126,7 @@ namespace TcneShared
                 throw new Exception();
             }
             var apiUrl = _configuration["CheckFront_Api_Url"];
-            var limit = _configuration["CheckFrontApiLimit"];
+            var limit  = _configuration["CheckFrontApiLimit"];
 
             string bookingUrl = apiUrl + $"?limit=" + limit;    // use query param to set limit of records returned (CheckFront default is 100)
 
@@ -168,99 +141,103 @@ namespace TcneShared
                 // now we have the list of bookings  from CheckFront, we need to get the detail for each booking and merge it into the list
                 // first filter these results to only include bookings for today or future dates
 
-                var futureValidBookings = new List<Booking>();
-                foreach (KeyValuePair<string, Booking> booking in bookingModel.BookingIndex)
+                try
                 {
-                    //ignore some bookings, no need to get detail for them
-                    if (booking.Value.StatusName == "Cancelled") { continue; }
-                    if (booking.Value.StatusName == "Void") { continue; }
-
-                    // ignore bookings in the past. Note we haven't fetched the detail info, so using the parent Booking model to check the date
-                    string dateString = booking.Value.DateDescription;
-                    DateTime parsedDate = DateTime.MinValue;
-                    if (DateTime.TryParseExact(dateString, "ddd MMM dd, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                    var futureValidBookings = new List<Booking>();
+                    foreach (KeyValuePair<string, Booking> booking in bookingModel.BookingIndex)
                     {
-                        if (parsedDate >= DateTime.Now)
+                        //ignore some bookings, no need to get detail for them
+                        if (booking.Value.StatusName == "Cancelled") { continue; }
+                        if (booking.Value.StatusName == "Void") { continue; }
+
+                        // ignore bookings in the past. Note we haven't fetched the detail info, so using the parent Booking model to check the date
+                        string dateString = booking.Value.DateDescription;
+                        DateTime parsedDate = DateTime.MinValue;
+                        if (DateTime.TryParseExact(dateString, "ddd MMM dd, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                         {
-                            futureValidBookings.Add(booking.Value);
+                            if (parsedDate >= DateTime.Now)
+                            {
+                                futureValidBookings.Add(booking.Value);
+                            }
                         }
                     }
 
-                }
-
-                foreach (var booking in futureValidBookings)
-                {
-
-                    string detailUrl = apiUrl + "/" + booking.BookingId.ToString();
-
-                    // this will get the detail for a single booking.
-                    string jsonDetail = await _apiService.GetJsonCheckFrontApiAsync(detailUrl, token).ConfigureAwait(false);
-
-                    CheckFrontBookingDetail.RootObject? detailModel = new CheckFrontBookingDetail.RootObject();
-
-                    try
+                    foreach (var booking in futureValidBookings)
                     {
-                        detailModel = JsonSerializer.Deserialize<CheckFrontBookingDetail.RootObject>(jsonDetail);
+                        string detailUrl = apiUrl + "/" + booking.BookingId.ToString();
 
-                    }
-                    catch (JsonException ex)
-                    {
-                        Debug.WriteLine("------------------------------------------------------");
-                        // Log the exception and the problematic item
-                        Debug.WriteLine($"Error deserializing item for booking Id: {booking.BookingId}");
-                        Debug.WriteLine($"Exception Message: {ex.Message}");
-                        // Optionally, log additional details from the exception
-                        Debug.WriteLine($"{ex.Data}");
-                        Debug.WriteLine($"{ex.InnerException}");
-                        Debug.WriteLine("------------------------------------------------------");
+                        // this will get the detail for a single booking.
+                        // using ConfigureAwait means don't need to resume execution on the original context
+                        string jsonDetail = await _apiService.GetJsonCheckFrontApiAsync(detailUrl, token).ConfigureAwait(false);
 
-                        // for some reason, this item's json can't be deserialized
-                        // This means there are 3 important unknowns:
-                        // 1) start time
-                        // 2) end time of the rental
-                        // 3) which space Nest/Hideout 
-                    }
+                        CheckFrontBookingDetail.RootObject? detailModel = new CheckFrontBookingDetail.RootObject();
 
-
-
-                    if ((detailModel != null) && (detailModel.BookingDetail != null) && (detailModel.BookingDetail.Items != null))
-                    {
-                        int itemNo = 0;
                         try
                         {
-                            long finalEndDate = 0; // this is the maximum timestamp found in the items collection.
+                            detailModel = JsonSerializer.Deserialize<CheckFrontBookingDetail.RootObject>(jsonDetail);
 
-                            // usually a booking detail will only have a single item in this collection.
-                            // in the event there are 2 or more, then the requirement is to compute the total duration of the booking.
-                            // to do that, iterate the items collection and capture the latest enddate and use that for the enddate of the booking
-
-                            foreach (KeyValuePair<string, CheckFrontBookingDetail.Item> detailItem in detailModel.BookingDetail.Items)
-                            {
-                                booking.Studio = detailItem.Value.Studio;
-                                booking.EndDate = detailItem.Value.EndDate;
-                                booking.StartDate = detailItem.Value.StartDate;
-
-                                if (detailItem.Value.EndDate > finalEndDate)
-                                {
-                                    finalEndDate = detailItem.Value.EndDate;
-                                }
-                                itemNo++;
-                            }
-
-                            booking.EndDate = finalEndDate;
-                            Debug.WriteLine($"BookingId {booking.BookingId}   Detail Items count : {itemNo}");
                         }
-                        catch (Exception ex)
+                        catch (JsonException ex)
                         {
-                            Debug.WriteLine($"BookingId {booking.BookingId}    itemNo: {itemNo}");
-                            Debug.WriteLine($"{ex.Message}");
-                        }
-                    }
+                             // Log the exception and the problematic item
+                            _logger.LogError($"Error deserializing item for booking Id: {booking.BookingId}");
+                            _logger.LogError($"Exception Message: {ex.Message}");
+                            // Optionally, log additional details from the exception
+                            _logger.LogError($"{ex.Data}");
+                            _logger.LogError($"{ex.InnerException}");
 
-                    // booking SHOULD be the booking model that has StartDate, EndDate, Studio
-                    Debug.WriteLine("---");
+                            // for some reason, this item's json can't be deserialized
+                            // This means there are 3 important unknowns:
+                            // 1) start time
+                            // 2) end time of the rental
+                            // 3) which space Nest/Hideout 
+                        }
+
+                        if ((detailModel != null) && (detailModel.BookingDetail != null) && (detailModel.BookingDetail.Items != null))
+                        {
+                            int itemNo = 0;
+                            try
+                            {
+                                long finalEndDate = 0; // this is the maximum timestamp found in the items collection.
+
+                                // usually a booking detail will only have a single item in this collection.
+                                // in the event there are 2 or more, then the requirement is to compute the total duration of the booking.
+                                // to do that, iterate the items collection and capture the latest enddate and use that for the enddate of the booking
+
+                                foreach (KeyValuePair<string, CheckFrontBookingDetail.Item> detailItem in detailModel.BookingDetail.Items)
+                                {
+                                    booking.Studio = detailItem.Value.Studio;
+                                    booking.EndDate = detailItem.Value.EndDate;
+                                    booking.StartDate = detailItem.Value.StartDate;
+
+                                    if (detailItem.Value.EndDate > finalEndDate)
+                                    {
+                                        finalEndDate = detailItem.Value.EndDate;
+                                    }
+                                    itemNo++;
+                                }
+
+                                booking.EndDate = finalEndDate;
+                                _logger.LogError($"BookingId {booking.BookingId}   Detail Items count : {itemNo}");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError($"BookingId {booking.BookingId} error processing detail items -  itemNo: {itemNo}");
+                                _logger.LogError($"{ex.Message}");
+                            }
+                        }
+
+                        // booking SHOULD be the booking model that has StartDate, EndDate, Studio
+                        Debug.WriteLine("---");
+                    }
+                    listAppointments = ConvertModelToApptData(futureValidBookings); //, displayLocation);
                 }
-                listAppointments = ConvertModelToApptData(futureValidBookings); //, displayLocation);
+                catch (Exception)
+                {
+                    _logger.LogError("GetAppointments:  exception Processing bookingModel");
+                    throw;
+                }
+
             }
             return listAppointments;
         }
@@ -275,34 +252,27 @@ namespace TcneShared
         {
             _logger.LogInformation("ConvertModelToApptData");
 
-            Debug.WriteLine("ConvertModelToApptData");
-
             List<SchedulerAppointmentData> appointmentData = new List<SchedulerAppointmentData>();
-
-            Debug.WriteLine("ConvertModelToApptData");
-
 
             try
             {
                 int id = 1;
                 foreach (Booking booking in modelData)
                 {
-
-                    if (booking.BookingId == 212)
-                    {
-                        Debug.WriteLine("STOP");
-                    }
+                    //if (booking.BookingId == 212)       // TODO TBD - remove this debug code <<<<<<<<<<<<<<<<<<<<<<<<<<<
+                    //{
+                    //    Debug.WriteLine("STOP");
+                    //}
 
                     //ignore some bookings, no need to get detail for them
-                    if (booking.StatusName == "Cancelled") { continue; }
-                    if (booking.StatusName == "Void") { continue; }
+                    if (booking.StatusName == "Cancelled")  { continue; }
+                    if (booking.StatusName == "Void")       { continue; }
 
                     Debug.WriteLine($"StatusName:  {booking.StatusName}");
 
                     // Access the key and value of each item in the dictionary
                     //var key = item.Key;
                     //var booking = item.Value;
-
 
                     Debug.WriteLine($"BookingId       : {booking.BookingId}");
                     Debug.WriteLine($"Summary         : {booking.Summary}");
@@ -312,31 +282,25 @@ namespace TcneShared
                     Debug.WriteLine($"DateDescription : {booking.DateDescription}");
                     Debug.WriteLine("===================================");
 
-                    // Convert the string to an integer
-                    //long unixTime       = booking.StartDate;
-
-                    //var startDateTime   = ConvertTimeStamp(booking.StartDate);
-                    //var endDateTime     = ConvertTimeStamp(booking.EndDate);
-
                     var startDateTime = UnixTimeStampToDateTime(booking.StartDate);
-                    var endDateTime = UnixTimeStampToDateTime(booking.EndDate);
+                    var endDateTime   = UnixTimeStampToDateTime(booking.EndDate);
 
                     string location = "Reserved";
-                    string css = "unknown";
+                    string css      = "unknown";
+
                     if (booking.Studio == 13)
                     {
-                        // Nest
-                        css = "nest"; // #1861ac;  e-appointment.
+                        css      = "nest"; // #1861ac;  e-appointment.
                         location = "Nest";
                     }
                     else if (booking.Studio == 14)
                     {
-                        css = "hideout";    // e-appointment.
+                        css      = "hideout";    // e-appointment.
                         location = "Hideout";
                     }
 
                     string todStart = startDateTime.ToShortTimeString();
-                    string todEnd = endDateTime.ToShortTimeString();
+                    string todEnd   = endDateTime.ToShortTimeString();
 
                     //string subject = $"{location} {todStart} - {todEnd}";
                     string subject = $"-{todEnd}"; // this is a hack to get the scheduler to display the end time in the subject field
@@ -395,11 +359,11 @@ namespace TcneShared
                     appointmentData.Add(new SchedulerAppointmentData
                     {
                         Id = id,
-                        Subject = subject,
-                        Location = location,
-                        StartTime = startDateTime,
-                        EndTime = endDateTime,
-                        CssClass = css
+                        Subject     = booking.StatusName,
+                        Location    = location,
+                        StartTime   = startDateTime,
+                        EndTime     = endDateTime,
+                        CssClass    = css
                     });
 
 
@@ -516,7 +480,7 @@ namespace TcneShared
         {
             _logger.LogInformation("SaveAppointmentsAzure");
 
-            await _blobContainerClient.CreateIfNotExistsAsync();
+            await _blobContainerClient!.CreateIfNotExistsAsync();
 
             string jsonString = JsonSerializer.Serialize<List<SchedulerAppointmentData>>(listAppointments);
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
@@ -569,7 +533,7 @@ namespace TcneShared
 
             string data = string.Empty;
 
-            var blobClient = _blobContainerClient.GetBlobClient(_blobName);
+            var blobClient = _blobContainerClient!.GetBlobClient(_blobName);
 
             string blobContents = string.Empty;
             await foreach (BlobItem blobItem in _blobContainerClient.GetBlobsAsync())

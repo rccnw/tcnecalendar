@@ -5,14 +5,17 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using TcneShared;
 using TcneShared.Models;
+using TcneShared.WebHook;
+using System.Text.Json;
+using Grpc.Core;
 
 namespace CheckFrontAzureFunction
 {
     public class CheckFrontFunction
     {
         private readonly ILogger _logger;
-        private readonly CheckFrontApiService   _checkFrontApiService;
-        private readonly AzureStorage           _azureStorageService;
+        private readonly CheckFrontApiService _checkFrontApiService;
+        private readonly AzureStorage _azureStorageService;
 
         public CheckFrontFunction(ILoggerFactory loggerFactory, AzureStorage azureStorageService, CheckFrontApiService checkFrontApiService)
         {
@@ -25,6 +28,20 @@ namespace CheckFrontAzureFunction
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
             _logger.LogInformation($"Tcne HTTP Function activated :  {DateTime.Now}");
+
+            // Log the raw body of the POST request
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            _logger.LogInformation($"Raw Body: {requestBody}");
+
+            // Deserialize the request body into TcneShared.WebHook.Root
+            TcneShared.WebHook.Root? root = JsonSerializer.Deserialize<TcneShared.WebHook.Root>(requestBody);
+
+            // Access the deserialized object properties
+            //string? property1 = root?.Property1;
+            //int? property2 = root?.Property2;
+            // ...
+            var status = root?.Booking.Status;
+            _logger.LogInformation($"WebHook Booking Status: {status}");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
@@ -62,11 +79,8 @@ namespace CheckFrontAzureFunction
             await _azureStorageService.SaveAppointmentsAzure(listAppointments);     // save to Azure Storage
         }
 
-
-
-
-        private async Task SendAlert()
-        {
+        //private async Task SendAlert()
+        //{
             //_logger.LogInformation("Sending alert for CheckFront service unavailability");
 
             //string recipient    = "admin@example.com";
@@ -95,6 +109,6 @@ namespace CheckFrontAzureFunction
             //{
             //    _logger.LogInformation("Email alert sent successfully");
             //}
-        }
+        //}
     }
 }

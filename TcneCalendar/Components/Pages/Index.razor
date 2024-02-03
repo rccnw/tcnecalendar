@@ -87,16 +87,9 @@
 
 <style>
 
-
-
     .btn-group .btn.active {
         border-color: red;
     }
-
-/*     .btn-group .btn.active:focus {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        border-color: red;
-    } */
 
 
     .ulstyle {
@@ -194,13 +187,18 @@
         background: blue;
     }
 
-
+/*     .e-appointment-details {
+        display: none;
+    }
+    .e-time {
+        display: none;
+    } */
 
 
 
 </style>
 
-@code {    
+@code {
 
     public DateTime CurrentDate     = DateTime.Now;
     string displayLocation          = "nest";
@@ -247,9 +245,20 @@
 
     private async Task RefreshDataSource()
     {
-        //var logger = LoggerFactory.CreateLogger<AzureStorage>();
-        //var azureStorage = new AzureStorage(http, Configuration, LoggerFactory);
         List<SchedulerAppointmentData> listAppts = await AzureStorageService.LoadAppointmentsAzure(displayLocation);
+
+        //---------------------
+      // List<SchedulerAppointmentData> listApptsDebug = new List<SchedulerAppointmentData>();
+
+        // foreach(var appt in listAppts)
+        // {
+        //     appt.Subject    = "Cancelled";
+        //    // appt.Description = "Description";
+
+        //   //  listApptsDebug.Add(appt);
+        // }
+        //---------------------
+
         DataSource = listAppts;
         StateHasChanged();  
         Debug.WriteLine("RefreshSchedule() called  listAppts.Count:  {listAppts.Count}");
@@ -263,11 +272,6 @@
         {
             displayLocation = "all";
             AllButton("AllButton");
-
-            var logger = LoggerFactory.CreateLogger<AzureStorage>();
-            //var azureStorage = new AzureStorage(http, Configuration, LoggerFactory);
-            List<SchedulerAppointmentData> listAppts = await AzureStorageService.LoadAppointmentsAzure(displayLocation);
-            //.UpdateStorageAccount(displayLocation);
 
             await RefreshDataSource();
 

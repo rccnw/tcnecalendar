@@ -150,16 +150,19 @@ namespace TcneShared
                         if (booking.Value.StatusName == "Cancelled") { continue; }
                         if (booking.Value.StatusName == "Void") { continue; }
 
+                        futureValidBookings.Add(booking.Value);
+
+
                         // ignore bookings in the past. Note we haven't fetched the detail info, so using the parent Booking model to check the date
-                        string dateString = booking.Value.DateDescription;
-                        DateTime parsedDate = DateTime.MinValue;
-                        if (DateTime.TryParseExact(dateString, "ddd MMM dd, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
-                        {
-                            if (parsedDate >= DateTime.Now)
-                            {
-                                futureValidBookings.Add(booking.Value);
-                            }
-                        }
+                        //string dateString = booking.Value.DateDescription;
+                        //DateTime parsedDate = DateTime.MinValue;
+                        //if (DateTime.TryParseExact(dateString, "ddd MMM dd, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                        //{
+                        //    if (parsedDate >= DateTime.Now)  // TEMPORARY - for testing
+                        //    {
+                        //        futureValidBookings.Add(booking.Value);
+                        //    }
+                        //}
                     }
 
                     foreach (var booking in futureValidBookings)

@@ -19,6 +19,11 @@
     "storage2": {
       "type": "storage",
       "connectionId": "StorageConnectionString"
+    },
+    "appInsights3": {
+      "type": "appInsights",
+      "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+      "dynamicId": null
     }
   }
 }

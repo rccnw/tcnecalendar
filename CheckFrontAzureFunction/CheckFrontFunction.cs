@@ -8,14 +8,15 @@ using TcneShared.Models;
 using TcneShared.WebHook;
 using System.Text.Json;
 using Grpc.Core;
+using Azure;
 
 namespace CheckFrontAzureFunction
 {
     public class CheckFrontFunction
     {
-        private readonly ILogger _logger;
-        private readonly CheckFrontApiService _checkFrontApiService;
-        private readonly AzureStorage _azureStorageService;
+        private readonly ILogger? _logger;
+        private readonly CheckFrontApiService? _checkFrontApiService;
+        private readonly AzureStorage? _azureStorageService;
 
         public CheckFrontFunction(ILoggerFactory loggerFactory, AzureStorage azureStorageService, CheckFrontApiService checkFrontApiService)
         {
@@ -27,21 +28,42 @@ namespace CheckFrontAzureFunction
         [Function("CheckFrontFunction")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
+
+            if (_logger is null)
+            {
+                throw new ArgumentNullException(nameof(_logger));
+            }
+
             _logger.LogInformation($"Tcne HTTP Function activated :  {DateTime.Now}");
 
-            // Log the raw body of the POST request
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            _logger.LogInformation($"Raw Body: {requestBody}");
+            try
+            {
+                if ((req is not null) && (req.Body is not null))
+                {
+                    // This is likely to be a CheckFront WebHook request, else it's a test request via the browser or Postman
+                    // convert to string and log
+                    string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                    if (string.IsNullOrWhiteSpace(requestBody))
+                    {
+                        _logger.LogError("Request body string is empty");                        
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"Raw Body: {requestBody}");
+                    }   
 
-            // Deserialize the request body into TcneShared.WebHook.Root
-            TcneShared.WebHook.Root? root = JsonSerializer.Deserialize<TcneShared.WebHook.Root>(requestBody);
+                    // We don't need to deserialize the request body, this is just a notification to call the CheckFront API and update the Azure Storage
 
-            // Access the deserialized object properties
-            //string? property1 = root?.Property1;
-            //int? property2 = root?.Property2;
-            // ...
-            var status = root?.Booking.Status;
-            _logger.LogInformation($"WebHook Booking Status: {status}");
+                    // Deserialize the original request body stream into TcneShared.WebHook.Root
+                    //TcneShared.WebHook.Root? root = JsonSerializer.Deserialize<TcneShared.WebHook.Root>(requestBody);
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception: CheckFrontFunction {ex.Message}");
+            }
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
@@ -55,6 +77,19 @@ namespace CheckFrontAzureFunction
 
         private async Task UpdateStorageFromCheckFront()
         {
+            if (_logger is null)
+            {
+                throw new ArgumentNullException(nameof(_logger));
+            }
+            if (_checkFrontApiService is null)
+            {
+                throw new ArgumentNullException(nameof(_checkFrontApiService));
+            }
+            if (_azureStorageService is null)
+            {
+                throw new ArgumentNullException(nameof(_azureStorageService));
+            }
+
             _logger.LogInformation("UpdateStorageFromCheckFront");
 
             string token = _checkFrontApiService.GetBasicAuthToken();
@@ -81,34 +116,34 @@ namespace CheckFrontAzureFunction
 
         //private async Task SendAlert()
         //{
-            //_logger.LogInformation("Sending alert for CheckFront service unavailability");
+        //_logger.LogInformation("Sending alert for CheckFront service unavailability");
 
-            //string recipient    = "admin@example.com";
-            //string subject      = "CheckFront Service Unavailability";
-            //string body         = "The CheckFront service is currently unavailable.";
+        //string recipient    = "admin@example.com";
+        //string subject      = "CheckFront Service Unavailability";
+        //string body         = "The CheckFront service is currently unavailable.";
 
-            //string sendGridApiKey = Environment.GetEnvironmentVariable("SendGridApiKey");
+        //string sendGridApiKey = Environment.GetEnvironmentVariable("SendGridApiKey");
 
-            //var client = new SendGridClient(sendGridApiKey);
-            //var msg = new SendGridMessage()
-            //{
-            //    From = new EmailAddress("sender@example.com", "Sender Name"),
-            //    Subject = subject,
-            //    PlainTextContent = body,
-            //    HtmlContent = $"<p>{body}</p>"
-            //};
-            //msg.AddTo(new EmailAddress(recipient));
+        //var client = new SendGridClient(sendGridApiKey);
+        //var msg = new SendGridMessage()
+        //{
+        //    From = new EmailAddress("sender@example.com", "Sender Name"),
+        //    Subject = subject,
+        //    PlainTextContent = body,
+        //    HtmlContent = $"<p>{body}</p>"
+        //};
+        //msg.AddTo(new EmailAddress(recipient));
 
-            //var response = await client.SendEmailAsync(msg);
+        //var response = await client.SendEmailAsync(msg);
 
-            //if (response.StatusCode != HttpStatusCode.Accepted)
-            //{
-            //    _logger.LogError($"Failed to send email alert. Status code: {response.StatusCode}");
-            //}
-            //else
-            //{
-            //    _logger.LogInformation("Email alert sent successfully");
-            //}
+        //if (response.StatusCode != HttpStatusCode.Accepted)
+        //{
+        //    _logger.LogError($"Failed to send email alert. Status code: {response.StatusCode}");
+        //}
+        //else
+        //{
+        //    _logger.LogInformation("Email alert sent successfully");
+        //}
         //}
     }
 }

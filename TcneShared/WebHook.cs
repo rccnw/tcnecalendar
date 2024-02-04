@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace TcneShared.WebHook
 {
 
@@ -9,7 +11,10 @@ namespace TcneShared.WebHook
             Host = string.Empty;
         }
 
+        [JsonPropertyName("version")]
         public string Version { get; set; }
+
+        [JsonPropertyName("host")]
         public string Host { get; set; }
     }
 
@@ -29,14 +34,31 @@ namespace TcneShared.WebHook
             PostalZip = string.Empty;
         }
 
+        [JsonPropertyName("code")]
         public string Code { get; set; }
+
+        [JsonPropertyName("name")]
         public string Name { get; set; }
+
+        [JsonPropertyName("email")]
         public string Email { get; set; }
+
+        [JsonPropertyName("region")]
         public string Region { get; set; }
+
+        [JsonPropertyName("address")]
         public string Address { get; set; }
+
+        [JsonPropertyName("city")]
         public string City { get; set; }
+
+        [JsonPropertyName("country")]
         public string Country { get; set; }
+
+        [JsonPropertyName("phone")]
         public string Phone { get; set; }
+
+        [JsonPropertyName("postal_zip")]
         public string PostalZip { get; set; }
     }
 
@@ -75,11 +97,19 @@ namespace TcneShared.WebHook
 
         public string LineId { get; set; }
         public string ItemId { get; set; }
+
+        [JsonPropertyName("start_date")]
         public string StartDate { get; set; }
+
+        [JsonPropertyName("end_date")]
         public string EndDate { get; set; }
         public string Sku { get; set; }
         public object Slip { get; set; }
+
+        [JsonPropertyName("package_id")]
         public string PackageId { get; set; }
+
+        [JsonPropertyName("status")]
         public string Status { get; set; }
         public string Total { get; set; }
         public string TaxTotal { get; set; }
@@ -100,12 +130,25 @@ namespace TcneShared.WebHook
             Items = new List<Item>();
         }
 
+        [JsonPropertyName("@attributes")]
         public Attributes Attributes { get; set; }
+
+        [JsonPropertyName("sub_total")]
         public string SubTotal { get; set; }
+
+        [JsonPropertyName("tax_total")]
         public string TaxTotal { get; set; }
+
+        [JsonPropertyName("paid_total")]
         public string PaidTotal { get; set; }
+
+        [JsonPropertyName("total")]
         public string Total { get; set; }
+
+        [JsonPropertyName("taxes")]
         public Tax Taxes { get; set; }
+
+        [JsonPropertyName("items")]
         public List<Item> Items { get; set; }
     }
 
@@ -129,18 +172,43 @@ namespace TcneShared.WebHook
             Order = new Order();
         }
 
+        [JsonPropertyName("@attributes")]
         public Attributes Attributes { get; set; }
+
+        [JsonPropertyName("status")]
         public string Status { get; set; }
+
+        [JsonPropertyName("code")]
         public string Code { get; set; }
+
+        [JsonPropertyName("tid")]
         public object Tid { get; set; }
+
+        [JsonPropertyName("created_date")]
         public string CreatedDate { get; set; }
+
+        [JsonPropertyName("staff_id")]
         public string StaffId { get; set; }
+
+        [JsonPropertyName("source_ip")]
         public string SourceIp { get; set; }
+
+        [JsonPropertyName("start_date")]
         public string StartDate { get; set; }
+
+        [JsonPropertyName("end_date")]
         public string EndDate { get; set; }
+
+        [JsonPropertyName("customer")]
         public Customer Customer { get; set; }
+
+        [JsonPropertyName("fields")]
         public Dictionary<string, string> Fields { get; set; }
+
+        [JsonPropertyName("meta")]
         public Dictionary<string, object> Meta { get; set; }
+
+        [JsonPropertyName("order")]
         public Order Order { get; set; }
     }
 
@@ -152,8 +220,10 @@ namespace TcneShared.WebHook
             Attributes = new Attributes();
             Booking = new Booking();
         }
-
+        [JsonPropertyName("@attributes")]
         public Attributes Attributes { get; set; }
+
+        [JsonPropertyName("booking")]
         public Booking Booking { get; set; }
     }
 

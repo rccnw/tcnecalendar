@@ -13,14 +13,15 @@
 	    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
 	    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
 	    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.1" />
-	    <PackageReference Include="Syncfusion.Blazor.Layouts" Version="24.1.47" />
-    <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="24.1.47" />
-    <PackageReference Include="Syncfusion.Blazor.Schedule" Version="24.1.47" />
-    <PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.1.47" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="24.1.47" />
+	    <PackageReference Include="Syncfusion.Blazor.Layouts" Version="24.2.3" />
+    <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="24.2.3" />
+    <PackageReference Include="Syncfusion.Blazor.Schedule" Version="24.2.3" />
+    <PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.2.3" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="24.2.3" />
 </ItemGroup>
 <ItemGroup>
   <Folder Include="Data\" />
+  <Folder Include="Properties\PublishProfiles\" />
 </ItemGroup>
 <Import Project="..\TcneShared\TcneShared.projitems" Label="Shared" />
 

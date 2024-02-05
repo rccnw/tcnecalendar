@@ -211,7 +211,7 @@ https://blazor.syncfusion.com/documentation/scheduler/views
 
 https://www.epochconverter.com/
 
-
+Azure uses UTC Everywhere
 
 1708225200
 
@@ -233,4 +233,37 @@ https://tcne.scm.azurewebsites.net/
 
 
 https://tcne.scm.azurewebsites.net/api/dump
+
+
+
+https://tcne.checkfront.com/api/3.0/company
+
+timestamp": 1707110053.912148,
+
+"timezone": "US/Pacific",
+"utc_offset": -8,
+
+
+
+
+
+
+booking.StartDate	1714766400	
+GMT: Friday, May 3, 2024 8:00:00 PM
+pacificDateTime	{5/3/2024 12:00:00 PM}	
+Your time zone: Friday, May 3, 2024 1:00:00 PM GMT-07:00 DST        CORRECT
+
+
+
+
+booking.EndDate	    1714773600	
+GMT: Friday, May 3, 2024 10:00:00 PM
+utcDateTime	{5/3/2024 10:00:00 PM}	
+pacificDateTime	{5/3/2024 12:00:00 PM}
+Your time zone: Friday, May 3, 2024 3:00:00 PM GMT-07:00 DST        CORRECT
+
+
+https://www.worldtimebuddy.com/utc-to-gmt-converter
+
+
 

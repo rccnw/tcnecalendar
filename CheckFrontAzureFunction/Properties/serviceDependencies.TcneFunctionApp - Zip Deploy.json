@@ -1,15 +1,10 @@
 {
   "dependencies": {
-    "appInsights2": {
+    "appInsights3": {
+      "secretStore": "AzureAppSettings",
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/microsoft.insights/components/TcneFunctionApp",
       "type": "appInsights.azure",
       "connectionId": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-      "dynamicId": null
-    },
-    "storage1": {
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/tcne",
-      "type": "storage.azure",
-      "connectionId": "AzureWebJobsStorage",
       "dynamicId": null
     }
   }

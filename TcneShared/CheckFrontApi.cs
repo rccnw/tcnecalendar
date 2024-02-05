@@ -51,6 +51,7 @@ namespace TcneShared
             if (!String.IsNullOrEmpty(pingUrl))
             {
                 //   GET /api/3.0/ping
+                // using ConfigureAwait means don't need to resume execution on the original context
                 var responsePing = await _httpClient.GetAsync(pingUrl).ConfigureAwait(false);
                 if (responsePing.IsSuccessStatusCode)
                 {
@@ -68,22 +69,26 @@ namespace TcneShared
             Debug.WriteLine($"HTTP GET Request to: {apiUrl}");
             Debug.WriteLine($"Authorization Header: Basic {token}");
 
-
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
 
-            var response = await _httpClient.GetAsync(apiUrl).ConfigureAwait(false);
+            try
+            {
+                // using ConfigureAwait means don't need to resume execution on the original context
+                var response = await _httpClient.GetAsync(apiUrl).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                string content = await response.Content.ReadAsStringAsync();
+                // Log the response details
+                Debug.WriteLine($"HTTP Response Status Code: {response.StatusCode}");
+                Debug.WriteLine($"HTTP Response Content: {content}");
 
-            response.EnsureSuccessStatusCode();
-
-            string content = await response.Content.ReadAsStringAsync();
-
-            // Log the response details
-            Debug.WriteLine($"HTTP Response Status Code: {response.StatusCode}");
-            Debug.WriteLine($"HTTP Response Content: {content}");
-
-
-            return content;
+                return content;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("GetJsonCheckFrontApiAsync:  error getting json from CheckFront API");
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
-
     }
 }

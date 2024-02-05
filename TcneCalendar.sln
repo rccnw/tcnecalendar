@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		notes.txt = notes.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheckFrontAzureFunction", "CheckFrontAzureFunction\CheckFrontAzureFunction.csproj", "{64A4C933-68DE-4B39-B93D-5B4B56C870BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheckFrontAzureFunction", "CheckFrontAzureFunction\CheckFrontAzureFunction.csproj", "{64A4C933-68DE-4B39-B93D-5B4B56C870BE}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TcneShared", "TcneShared\TcneShared.shproj", "{C36D12E1-20B0-419C-AD7C-359921079E04}"
 EndProject

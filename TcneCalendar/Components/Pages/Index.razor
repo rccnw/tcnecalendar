@@ -31,6 +31,10 @@
     @Configuration["InfoMessage"]
 </div>
 
+<div style="color:white">
+    Last updated from CheckFront: @LastWebHookTime
+</div>
+
 <div class="controlregion">
 
     <div class="btn-group" role="group" aria-label="Studio Selector">
@@ -203,6 +207,7 @@
     string displayLocation          = "nest";
     private string activeButton     = "AllButton"; // Default active button
 
+    public string LastWebHookTime = string.Empty;
 
 
     public async void NestButton(string buttonId)
@@ -238,6 +243,29 @@
     protected async override Task OnInitializedAsync()
     {
         Logger.LogInformation("OnInitializedAsync() called");
+
+        var dtOffset = await AzureStorageService.GetLastWebhookRunTime();
+
+        TimeZoneInfo pacificZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        DateTime pacificDateTime = TimeZoneInfo.ConvertTimeFromUtc(dtOffset.Value.DateTime, pacificZone);
+
+        //  @LastWebHookTime.To  .ToString("MM/dd/yyyy HH:mm")     ((DateTime.Hour + 11) % 12) + 1
+
+        var dtLocal = pacificDateTime;  //dtOffset.Value.DateTime;  //   .ToLocalTime();
+
+    //   ((DateTime.Hour + 11) % 12) + 1
+        var ampm = "AM";
+        if (dtLocal.Hour >= 12) { ampm = "PM"; }
+
+        var hour = ((dtLocal.Hour + 11) % 12) + 1;
+        var minute = dtLocal.Minute;
+        var date  = dtLocal.ToShortDateString();
+
+        string minuteLeadingZero = minute.ToString();
+        if (minute < 10) { minuteLeadingZero = minute.ToString().PadLeft(2, '0'); }
+
+        LastWebHookTime = date + " " + hour + ":" + minuteLeadingZero + " " + ampm;
+
         await base.OnInitializedAsync();
     }
 

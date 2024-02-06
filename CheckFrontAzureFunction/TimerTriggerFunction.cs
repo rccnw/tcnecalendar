@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using TcneShared;
@@ -6,11 +7,14 @@ using TcneShared;
 
 namespace CheckFrontAzureFunction
 {
+
     public class TimerTriggerFunction
     {
         private readonly ILogger _logger;
         private readonly CheckFrontApiService? _checkFrontApiService;
         private readonly AzureStorage? _azureStorageService;
+
+        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
 
         public TimerTriggerFunction(ILoggerFactory loggerFactory, AzureStorage azureStorageService, CheckFrontApiService checkFrontApiService)
         {
@@ -37,9 +41,30 @@ namespace CheckFrontAzureFunction
             {
                 if (_azureStorageService is not null)
                 {
-                    await _azureStorageService.UpdateStorageFromCheckFront();
-                }
+                    var lastRunTime = await _azureStorageService.GetLastWebhookRunTime();
 
+                    if (lastRunTime is not null && DateTimeOffset.Now - lastRunTime.Value >= TimeSpan.FromMinutes(30))
+                    {
+                        if (await Semaphore.WaitAsync(0))  // Try to acquire the semaphore.
+                        {
+                            try
+                            {
+                                await _azureStorageService.UpdateStorageFromCheckFront();
+                                await _azureStorageService.SetWebhookRunTime();
+                            }
+                            finally
+                            {
+                                Semaphore.Release();  // Release the semaphore.
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInformation("TimerTriggerFunction:  Previous call to UpdateStorageFromCheckFront is still running");
+                        }
+
+                    }
+                    else { _logger.LogInformation("TimerTriggerFunction:  Not enough time has passed since last run"); }
+                }
             }
             catch (Exception ex)
             {

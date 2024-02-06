@@ -9,6 +9,8 @@ using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TcneShared;
+using Azure.Data.Tables;
+using Azure;
 
 
 namespace TcneShared
@@ -29,6 +31,8 @@ namespace TcneShared
 
     public class AzureStorage
     {
+        private static DateTimeOffset _lastRunTime = DateTime.MinValue;
+
         private readonly HttpClient _httpClient;
         private IConfiguration? _configuration;
         BlobServiceClient? _blobServiceClient;
@@ -225,8 +229,10 @@ namespace TcneShared
                             }
                             else
                             {
+                                // This can happen:   'Tue Mar 26 2024 - Tue Apr 2 2024'   - 2 dates in the string
+
                                 // no clue, just let it through
-                                _logger.LogError($"GetAppointments:  Error parsing date : '{dateString}'");
+                                _logger.LogWarning($"GetAppointments:  Unabled to parse date : '{dateString}'");
                                 futureValidBookings.Add(booking.Value); // go ahead and add it to the list anyway
                             }
                         }
@@ -298,7 +304,7 @@ namespace TcneShared
 
                             // booking SHOULD be the booking model that has StartDate, EndDate, Studio
                             Debug.WriteLine("---");
-                            Task.Delay(1000).Wait();  // delay to avoid CheckFront API rate limit
+                            Task.Delay(200).Wait();  // delay to avoid CheckFront API rate limit
                         }
                         listAppointments = ConvertModelToApptData(futureValidBookings); //, displayLocation);
                     }
@@ -557,5 +563,73 @@ namespace TcneShared
             }
             return filteredList;
         }
+
+        public async Task SetWebhookRunTime()
+        {
+            // Convert UTC DateTime to Pacific Time
+            TimeZoneInfo pacificZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            DateTime pacificDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, pacificZone);
+
+            TableClient tableClient = await GetTableClient();
+            var entity = new TableEntity("Webhook", "LastRun")
+            {
+                { "Timestamp", pacificDateTime }
+            };
+            _lastRunTime = pacificDateTime;
+
+
+            // Check if the entity already exists
+            var existingEntity = await tableClient.GetEntityAsync<TableEntity>("Webhook", "LastRun");
+            if (existingEntity == null)
+            {
+                await tableClient.AddEntityAsync(entity, CancellationToken.None);
+            }
+            else
+            {
+                entity.ETag = existingEntity.Value.ETag;
+                await tableClient.UpdateEntityAsync(entity, new Azure.ETag(existingEntity.Value.ETag.ToString()), TableUpdateMode.Replace);
+            }
+        }
+
+
+        private async Task<TableClient> GetTableClient()
+        {
+            if (_configuration is null)
+            {
+                throw new ArgumentNullException(nameof(_configuration));
+            }
+            var tableName = _configuration["WebHookTableName"];
+
+            if (String.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentNullException(nameof(tableName));
+            }
+
+            var tableServiceClient = new TableServiceClient(_storageConnectionString);
+
+            var tableClient = tableServiceClient.GetTableClient(tableName);
+
+            await tableClient.CreateIfNotExistsAsync();
+            return tableClient;
+        }
+
+        public async Task<DateTimeOffset?> GetLastWebhookRunTime()
+        {
+            if (_configuration is null)
+            {
+                throw new ArgumentNullException(nameof(_configuration));
+            }   
+
+            DateTimeOffset? dtLastWebHookRun = DateTime.MinValue;
+;
+            var tableClient = await GetTableClient();
+            var entity = tableClient.GetEntity<TableEntity>("Webhook", "LastRun");
+
+            dtLastWebHookRun = entity.Value.Timestamp;
+
+            return dtLastWebHookRun;
+        }
+
+
     }
 }

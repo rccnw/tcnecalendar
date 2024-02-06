@@ -38,6 +38,7 @@ namespace CheckFrontAzureFunction
                 if (_azureStorageService is not null)
                 {
                     await _azureStorageService.UpdateStorageFromCheckFront();
+                    await _azureStorageService.SetWebhookRunTime();
                 }
 
             }

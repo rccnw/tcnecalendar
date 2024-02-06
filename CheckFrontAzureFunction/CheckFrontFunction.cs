@@ -9,6 +9,7 @@ using TcneShared.WebHook;
 using System.Text.Json;
 using Grpc.Core;
 using Azure;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CheckFrontAzureFunction
 {
@@ -26,12 +27,16 @@ namespace CheckFrontAzureFunction
         }
 
         [Function("CheckFrontFunction")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)            
         {
 
             if (_logger is null)
             {
                 throw new ArgumentNullException(nameof(_logger));
+            }
+            if(_azureStorageService is null)
+            {
+                throw new ArgumentNullException(nameof(_azureStorageService));
             }
 
             _logger.LogInformation($"Tcne HTTP Function activated :  {DateTime.Now}");
@@ -43,10 +48,12 @@ namespace CheckFrontAzureFunction
 
             try
             {
-                if (_azureStorageService is not null)
-                {
-                    await _azureStorageService.UpdateStorageFromCheckFront();
-                }
+                //if (_azureStorageService is not null)
+                //{
+                //    await _azureStorageService.UpdateStorageFromCheckFront();
+                //}
+
+                await _azureStorageService.SetWebhookRunTime();
             }
             catch (Exception ex)
             {
@@ -58,7 +65,18 @@ namespace CheckFrontAzureFunction
         }
 
 
+        //private async void StoreLastRunTime()
+        //{
 
+        //    // Write the current time to the table.
+        //    var entity = new TableEntity("Webhook", "LastRun")
+        //    {
+        //        { "Timestamp", DateTime.UtcNow }
+        //    };
+        //    await table.ExecuteAsync(TableOperation.InsertOrReplace(entity));
+
+
+        //}
 
 
         //private async Task SendAlert()

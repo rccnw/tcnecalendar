@@ -31,6 +31,10 @@
     @Configuration["InfoMessage"]
 </div>
 
+<div style="color:white">
+    Last updated from CheckFront: @LastWebHookTime
+</div>
+
 <div class="controlregion">
 
     <div class="btn-group" role="group" aria-label="Studio Selector">
@@ -203,6 +207,7 @@
     string displayLocation          = "nest";
     private string activeButton     = "AllButton"; // Default active button
 
+    public string LastWebHookTime = string.Empty;
 
 
     public async void NestButton(string buttonId)
@@ -238,6 +243,24 @@
     protected async override Task OnInitializedAsync()
     {
         Logger.LogInformation("OnInitializedAsync() called");
+
+        var dtOffset = await AzureStorageService.GetLastWebhookRunTime();
+
+
+        //  @LastWebHookTime.To  .ToString("MM/dd/yyyy HH:mm")     ((DateTime.Hour + 11) % 12) + 1
+
+        var dtLocal = dtOffset.Value.DateTime.ToLocalTime();
+
+        //   ((DateTime.Hour + 11) % 12) + 1
+        var ampm = "AM";
+        if (dtLocal.Hour >= 12) { ampm = "PM"; }
+
+        var hour = ((dtLocal.Hour + 11) % 12) + 1;
+        var minute = dtLocal.Minute;
+        var date  = dtLocal.ToShortDateString();
+
+        LastWebHookTime = date + " " + hour + ":" + minute + " " + ampm;
+
         await base.OnInitializedAsync();
     }
 

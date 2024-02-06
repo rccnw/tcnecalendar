@@ -9,6 +9,7 @@ using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TcneShared;
+using Azure.Data.Tables;
 
 
 namespace TcneShared
@@ -298,7 +299,7 @@ namespace TcneShared
 
                             // booking SHOULD be the booking model that has StartDate, EndDate, Studio
                             Debug.WriteLine("---");
-                            Task.Delay(1000).Wait();  // delay to avoid CheckFront API rate limit
+                            Task.Delay(200).Wait();  // delay to avoid CheckFront API rate limit
                         }
                         listAppointments = ConvertModelToApptData(futureValidBookings); //, displayLocation);
                     }
@@ -556,6 +557,54 @@ namespace TcneShared
                 }
             }
             return filteredList;
+        }
+
+        public async Task SetWebhookRunTime()
+        {
+            TableClient tableClient = await GetTableClient();
+            var entity = new TableEntity("Webhook", "LastRun")
+            {
+                { "Timestamp", DateTime.UtcNow }
+            };
+            await tableClient.AddEntityAsync(entity);
+        }
+
+        private async Task<TableClient> GetTableClient()
+        {
+            if (_configuration is null)
+            {
+                throw new ArgumentNullException(nameof(_configuration));
+            }
+            var tableName = _configuration["WebHookTableName"];
+
+            if (String.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentNullException(nameof(tableName));
+            }
+
+            var tableServiceClient = new TableServiceClient(_storageConnectionString);
+
+            var tableClient = tableServiceClient.GetTableClient(tableName);
+
+            await tableClient.CreateIfNotExistsAsync();
+            return tableClient;
+        }
+
+        public async Task<DateTimeOffset?> GetLastWebhookRunTime()
+        {
+            if (_configuration is null)
+            {
+                throw new ArgumentNullException(nameof(_configuration));
+            }   
+
+            DateTimeOffset? dtLastWebHookRun = DateTime.MinValue;
+;
+            var tableClient = await GetTableClient();
+            var entity = tableClient.GetEntity<TableEntity>("Webhook", "LastRun");
+
+            dtLastWebHookRun = entity.Value.Timestamp;       
+
+            return dtLastWebHookRun;
         }
     }
 }

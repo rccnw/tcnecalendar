@@ -246,12 +246,14 @@
 
         var dtOffset = await AzureStorageService.GetLastWebhookRunTime();
 
+        TimeZoneInfo pacificZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+        DateTime pacificDateTime = TimeZoneInfo.ConvertTimeFromUtc(dtOffset.Value.DateTime, pacificZone);
 
         //  @LastWebHookTime.To  .ToString("MM/dd/yyyy HH:mm")     ((DateTime.Hour + 11) % 12) + 1
 
-        var dtLocal = dtOffset.Value.DateTime.ToLocalTime();
+        var dtLocal = pacificDateTime;  //dtOffset.Value.DateTime;  //   .ToLocalTime();
 
-        //   ((DateTime.Hour + 11) % 12) + 1
+    //   ((DateTime.Hour + 11) % 12) + 1
         var ampm = "AM";
         if (dtLocal.Hour >= 12) { ampm = "PM"; }
 
@@ -259,7 +261,10 @@
         var minute = dtLocal.Minute;
         var date  = dtLocal.ToShortDateString();
 
-        LastWebHookTime = date + " " + hour + ":" + minute + " " + ampm;
+        string minuteLeadingZero = minute.ToString();
+        if (minute < 10) { minuteLeadingZero = minute.ToString().PadLeft(2, '0'); }
+
+        LastWebHookTime = date + " " + hour + ":" + minuteLeadingZero + " " + ampm;
 
         await base.OnInitializedAsync();
     }

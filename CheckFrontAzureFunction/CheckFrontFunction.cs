@@ -18,6 +18,7 @@ namespace CheckFrontAzureFunction
         private readonly ILogger? _logger;
         private readonly CheckFrontApiService? _checkFrontApiService;
         private readonly AzureStorage? _azureStorageService;
+        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
 
         public CheckFrontFunction(ILoggerFactory loggerFactory, AzureStorage azureStorageService, CheckFrontApiService checkFrontApiService)
         {
@@ -27,14 +28,14 @@ namespace CheckFrontAzureFunction
         }
 
         [Function("CheckFrontFunction")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)            
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
 
             if (_logger is null)
             {
                 throw new ArgumentNullException(nameof(_logger));
             }
-            if(_azureStorageService is null)
+            if (_azureStorageService is null)
             {
                 throw new ArgumentNullException(nameof(_azureStorageService));
             }
@@ -43,72 +44,37 @@ namespace CheckFrontAzureFunction
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
-            response.WriteString("TCNE function activated");
+            response.WriteString("CheckFrontFunction function activated");      // gratuituous response
 
             try
             {
-                //if (_azureStorageService is not null)
-                //{
-                //    await _azureStorageService.UpdateStorageFromCheckFront();
-                //}
-
-                await _azureStorageService.SetWebhookRunTime();
+                if (_azureStorageService is not null)
+                {
+                    if (await Semaphore.WaitAsync(0))  // Try to acquire the semaphore.
+                    {
+                        try
+                        {
+                            await _azureStorageService.UpdateStorageFromCheckFront();
+                            await _azureStorageService.SetWebhookRunTime();
+                        }
+                        finally
+                        {
+                            Semaphore.Release();  // Release the semaphore.
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("CheckFrontFunction:  Previous call to UpdateStorageFromCheckFront is still running");
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Http Function:   UpdateStorageFromCheckFront failed  {ex.Message}");
+                _logger.LogError($"Error in CheckFrontFunction {ex.Message}");
                 throw;
             }
 
             return response;
         }
-
-
-        //private async void StoreLastRunTime()
-        //{
-
-        //    // Write the current time to the table.
-        //    var entity = new TableEntity("Webhook", "LastRun")
-        //    {
-        //        { "Timestamp", DateTime.UtcNow }
-        //    };
-        //    await table.ExecuteAsync(TableOperation.InsertOrReplace(entity));
-
-
-        //}
-
-
-        //private async Task SendAlert()
-        //{
-        //_logger.LogInformation("Sending alert for CheckFront service unavailability");
-
-        //string recipient    = "admin@example.com";
-        //string subject      = "CheckFront Service Unavailability";
-        //string body         = "The CheckFront service is currently unavailable.";
-
-        //string sendGridApiKey = Environment.GetEnvironmentVariable("SendGridApiKey");
-
-        //var client = new SendGridClient(sendGridApiKey);
-        //var msg = new SendGridMessage()
-        //{
-        //    From = new EmailAddress("sender@example.com", "Sender Name"),
-        //    Subject = subject,
-        //    PlainTextContent = body,
-        //    HtmlContent = $"<p>{body}</p>"
-        //};
-        //msg.AddTo(new EmailAddress(recipient));
-
-        //var response = await client.SendEmailAsync(msg);
-
-        //if (response.StatusCode != HttpStatusCode.Accepted)
-        //{
-        //    _logger.LogError($"Failed to send email alert. Status code: {response.StatusCode}");
-        //}
-        //else
-        //{
-        //    _logger.LogInformation("Email alert sent successfully");
-        //}
-        //}
     }
 }

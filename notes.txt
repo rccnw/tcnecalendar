@@ -274,3 +274,25 @@ https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction?
 
 
 
+
+
+2024-02-07T03:11:52Z   [Warning]   --------------------------------
+2024-02-07T03:11:52Z   [Error]   BookingId is 213
+2024-02-07T03:11:52Z   [Warning]   --------------------------------
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 0  : Items Count:  8
+
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 0  :  1711494000 - 1711522800     Tuesday,   March 26, 2024  4:00:00 PM  - Wednesday, March 27, 2024 12:00:00 AM 
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 1  :  1711522800 - 1711609200     Wednesday, March 27, 2024 12:00:00 AM  - Thursday,  March 28, 2024 12:00:00 AM 
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 2  :  1711609200 - 1711695600     Thursday,  March 28, 2024 12:00:00 AM  - Friday,    March 29, 2024 12:00:00 AM
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 3  :  1711695600 - 1711782000     Friday,    March 29, 2024 12:00:00 AM  - Saturday,  March 30, 2024 12:00:00 AM
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 4  :  1711782000 - 1711868400     Saturday,  March 30, 2024 12:00:00 AM  - Sunday,    March 31, 2024 12:00:00 AM
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 5  :  1711868400 - 1711954800     Sunday,    March 31, 2024 12:00:00 AM  - Monday,    April 1,  2024 12:00:00 AM
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 6  :  1711954800 - 1712041200     Monday,    April 1,  2024 12:00:00 AM  - Tuesday,   April 2,  2024 12:00:00 AM
+2024-02-07T03:11:52Z   [Warning]   BookingId 213  Detail Item 7  :  1712041200 - 1712073600     Tuesday,   April 2,  2024 12:00:00 AM  - Tuesday,   April 2,  2024  9:00:00 AM 
+
+
+
+https://www.epochconverter.com/
+
+
+

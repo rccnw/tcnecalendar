@@ -78,8 +78,11 @@ namespace CheckFrontAzureFunction
             // Report
             _logger.LogInformation($"HttpHelperFunction executed in {stopwatch.ElapsedMilliseconds} milliseconds");
             _logger.LogInformation($"HttpHelperFunction executed {apiCallCount} API calls");
-            int callsPerMinute = (int)(apiCallCount / (stopwatch.ElapsedMilliseconds / 1000) * 60);
-            _logger.LogInformation($"HttpHelperFunction executed {callsPerMinute} API calls per minute");
+
+
+            var callsPerMinute = ((apiCallCount / (stopwatch.ElapsedMilliseconds / 1000)) * 60);
+       
+            _logger.LogInformation($"HttpHelperFunction executed at the equivalent rate of {callsPerMinute} API calls per minute");
 
             return response;
         }

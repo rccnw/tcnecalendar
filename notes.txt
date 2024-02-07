@@ -296,3 +296,19 @@ https://www.epochconverter.com/
 
 
 
+
+
+    /// <summary>
+    /// storage account name:   tcne
+    /// container name:  appointments
+    ///   "AzureStorageAccountName" :  "tcne",
+    /// AzureStorageAccountContainerName":  "appointments"
+    /// https://github.com/Azure-Samples/ms-identity-easyauth-dotnet-storage-graphapi/tree/main/1-WebApp-storage-managed-identity
+    /// 
+    /// https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-download
+    /// 
+    /// https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#install-azurite
+    /// 
+    /// </summary>
+
+

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using TcneShared;
 using System;
 
+
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureLogging((context, loggingBuilder) =>

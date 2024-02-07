@@ -98,8 +98,10 @@ namespace TcneShared
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public async Task UpdateStorageFromCheckFront()
+        public async Task<int> UpdateStorageFromCheckFront()
         {
+            int apiCallCount = 0;
+
             if (_logger is null)
             {
                 throw new ArgumentNullException(nameof(_logger));
@@ -117,19 +119,22 @@ namespace TcneShared
             bool apiAvailable = await _apiService.PingCheckFrontApi();
             _logger.LogInformation($"CheckFront API available: {apiAvailable}");
 
+
             if (!apiAvailable)
             {
                 // TODO: Add code to signal an alert for CheckFront service unavailability
                 // await SendAlert();
                 _logger.LogError($"PingCheckFrontApi failed : CheckFront API NOT AVAILABLE: {apiAvailable}");
-                return;
+                return apiCallCount;
             }
 
             try
             {
                 List<SchedulerAppointmentData> listAppointments = new();
                 listAppointments = await GetAppointments();                 // fetch from CheckFront API
+                apiCallCount = listAppointments.Count;
                 await SaveAppointmentsAzure(listAppointments);              // save to Azure Storage
+                return apiCallCount;
             }
             catch (Exception ex)
             {
@@ -279,8 +284,31 @@ namespace TcneShared
                                     // in the event there are 2 or more, then the requirement is to compute the total duration of the booking.
                                     // to do that, iterate the items collection and capture the latest enddate and use that for the enddate of the booking
 
+                                    if (booking.BookingId == 213)
+                                    {
+                                        _logger.LogWarning("--------------------------------");
+                                        _logger.LogError("BookingId is 213");
+                                    }
+
                                     foreach (KeyValuePair<string, CheckFrontBookingDetail.Item> detailItem in detailModel.BookingDetail.Items)
                                     {
+                                        if (detailModel.BookingDetail.Items.Count > 1)
+                                        {
+                                            _logger.LogWarning("--------------------------------");
+                                            _logger.LogWarning($"BookingId {booking.BookingId}  Detail Item {itemNo}  : Items Count:  {detailModel.BookingDetail.Items.Count}");
+                                            _logger.LogWarning($"BookingId {booking.BookingId}  Detail Item {itemNo}  :  {detailItem.Value.StartDate} - {detailItem.Value.EndDate}");
+                                        }
+                                        _logger.LogWarning("--------------------------------");
+
+                                        if (booking.BookingId == 213)
+                                        {
+                                            _logger.LogWarning($"BookingId {booking.BookingId}  Detail Item {itemNo}  :  {detailItem.Value.StartDate} - {detailItem.Value.EndDate}");
+                                        }
+
+                                        _logger.LogWarning("--------------------------------");
+
+
+
                                         booking.Studio      = detailItem.Value.Studio;
                                         booking.EndDate     = detailItem.Value.EndDate;
                                         booking.StartDate   = detailItem.Value.StartDate;
@@ -304,7 +332,11 @@ namespace TcneShared
 
                             // booking SHOULD be the booking model that has StartDate, EndDate, Studio
                             Debug.WriteLine("---");
-                            Task.Delay(200).Wait();  // delay to avoid CheckFront API rate limit
+                            string? value = _configuration["ApiRateLimitDelayMilliseconds"];
+                            if (value == null) { value = "500";  }
+                            int apiRateLimitDelay = int.Parse(value);
+                            _logger.LogInformation($"Thottle API calls  : {apiRateLimitDelay} ms");
+                            Task.Delay(apiRateLimitDelay).Wait();  // delay to avoid CheckFront API rate limit   
                         }
                         listAppointments = ConvertModelToApptData(futureValidBookings); //, displayLocation);
                     }
@@ -440,7 +472,7 @@ namespace TcneShared
 
         public async Task SaveAppointmentsAzure(List<SchedulerAppointmentData> listAppointments)
         {
-            _logger.LogInformation("SaveAppointmentsAzure");
+             _logger.LogInformation("SaveAppointmentsAzure");
 
             try
             {

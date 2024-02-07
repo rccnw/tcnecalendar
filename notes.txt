@@ -267,3 +267,10 @@ https://www.worldtimebuddy.com/utc-to-gmt-converter
 
 
 
+
+https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction?
+https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction?clientId=default
+https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction?
+
+
+

@@ -17,5 +17,9 @@
   "CheckFront_Api_Ping_Url": "https://tcne.checkfront.com/api/3.0/ping",
   "CheckFrontApiLimit": "500",
   "StudioCategoryUnknown": "99",
-  "UpdateStorageAccount": false
+  "UpdateStorageAccount": false,
+  "HttpHelperFunctionUrl": "https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction",
+  "ApiRateLimitDelayMilliseconds": 500
 }
+
+

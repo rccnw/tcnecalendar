@@ -1,80 +1,68 @@
-using System.Diagnostics;
 using System.Net;
+using Azure;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TcneShared;
-using TcneShared.Models;
-using TcneShared.WebHook;
-using System.Text.Json;
-using Grpc.Core;
-using Azure;
-using System.ComponentModel.DataAnnotations.Schema;
+
 
 namespace CheckFrontAzureFunction
 {
     public class CheckFrontFunction
     {
         private readonly ILogger? _logger;
-        private readonly CheckFrontApiService? _checkFrontApiService;
-        private readonly AzureStorage? _azureStorageService;
-        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
+        private IConfiguration? _configuration;
 
-        public CheckFrontFunction(ILoggerFactory loggerFactory, AzureStorage azureStorageService, CheckFrontApiService checkFrontApiService)
+        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
+        private static readonly HttpClient _httpClient = new HttpClient();
+
+        public CheckFrontFunction(ILoggerFactory loggerFactory, IConfiguration configuration)
         {
-            _logger = loggerFactory.CreateLogger<CheckFrontFunction>();
-            _azureStorageService = azureStorageService;
-            _checkFrontApiService = checkFrontApiService;
+            _logger         = loggerFactory.CreateLogger<CheckFrontFunction>();
+            _configuration  = configuration;
         }
 
         [Function("CheckFrontFunction")]
         public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
-
             if (_logger is null)
             {
                 throw new ArgumentNullException(nameof(_logger));
             }
-            if (_azureStorageService is null)
+            if (_configuration is null)
             {
-                throw new ArgumentNullException(nameof(_azureStorageService));
+                throw new ArgumentNullException(nameof(_configuration));
             }
 
-            _logger.LogInformation($"Tcne HTTP Function activated :  {DateTime.Now}");
-
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-            response.WriteString("CheckFrontFunction function activated");      // gratuituous response
+            _logger.LogInformation($"CheckFrontFunction HTTP Function activated :  {DateTime.Now}");
 
             try
             {
-                if (_azureStorageService is not null)
-                {
-                    if (await Semaphore.WaitAsync(0))  // Try to acquire the semaphore.
-                    {
-                        try
-                        {
-                            await _azureStorageService.UpdateStorageFromCheckFront();
-                            await _azureStorageService.SetWebhookRunTime();
-                        }
-                        finally
-                        {
-                            Semaphore.Release();  // Release the semaphore.
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogInformation("CheckFrontFunction:  Previous call to UpdateStorageFromCheckFront is still running");
-                    }
-                }
+                // configure response to CheckFront webhook call
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+                response.WriteString("CheckFrontFunction function activated");      // gratuituous response
+
+                // Make an HTTP request to the HttpHelperFunction endpoint asynchronously
+                var httpHelperFunctionUrl = _configuration["HttpHelperFunctionUrl"];
+                _logger.LogInformation($"CheckFrontFunction:  calling HttpHelperFunction  - '{httpHelperFunctionUrl}'");
+
+                var httpClient = new HttpClient();
+
+                //httpClient.PostAsync(httpHelperFunctionUrl, null);
+                //_ = httpClient.PostAsync(httpHelperFunctionUrl, null);
+
+                httpClient.PostAsync(httpHelperFunctionUrl, null);
+
+
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in CheckFrontFunction {ex.Message}");
+                _logger.LogError($"CheckFrontFunction:  Exception thrown  {ex.Message}");
                 throw;
             }
-
-            return response;
         }
     }
 }

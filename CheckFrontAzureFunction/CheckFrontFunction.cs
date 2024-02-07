@@ -50,11 +50,7 @@ namespace CheckFrontAzureFunction
 
                 var httpClient = new HttpClient();
 
-                //httpClient.PostAsync(httpHelperFunctionUrl, null);
-                //_ = httpClient.PostAsync(httpHelperFunctionUrl, null);
-
-                httpClient.PostAsync(httpHelperFunctionUrl, null);
-
+                httpClient.PostAsync(httpHelperFunctionUrl, null);      // don't wait, just fire and forget
 
                 return response;
             }

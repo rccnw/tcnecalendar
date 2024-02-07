@@ -21,5 +21,3 @@
   "HttpHelperFunctionUrl": "https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction",
   "ApiRateLimitDelayMilliseconds": 500
 }
-
-

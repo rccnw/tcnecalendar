@@ -11,24 +11,11 @@ using Microsoft.Extensions.Logging;
 using TcneShared;
 using Azure.Data.Tables;
 using Azure;
+using System.Configuration;
 
 
 namespace TcneShared
 {
-
-    /// <summary>
-    /// storage account name:   tcne
-    /// container name:  appointments
-    ///   "AzureStorageAccountName" :  "tcne",
-    /// AzureStorageAccountContainerName":  "appointments"
-    /// https://github.com/Azure-Samples/ms-identity-easyauth-dotnet-storage-graphapi/tree/main/1-WebApp-storage-managed-identity
-    /// 
-    /// https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blob-download
-    /// 
-    /// https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#install-azurite
-    /// 
-    /// </summary>
-
     public class AzureStorage
     {
         private static DateTimeOffset _lastRunTime = DateTime.MinValue;
@@ -234,9 +221,35 @@ namespace TcneShared
                             }
                             else
                             {
-                                // This can happen:   'Tue Mar 26 2024 - Tue Apr 2 2024'   - 2 dates in the string
+                                // This can happen when a booking spans days:   'Tue Mar 26 2024 - Tue Apr 2 2024'   - 2 dates in the string
+                                // NOTE that in this case there is NO COMMA after the date field, unlike the other date format strings
+          
+                                string[] parts = dateString.Split('-');
+                                string firstString = parts[0].Trim();
+                                string secondString = parts[1].Trim();
 
-                                // no clue, just let it through
+
+                                // examine the second date in the string to see if it is in the future and should be included
+                                if (DateTime.TryParseExact(secondString, "ddd MMM dd yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                                {
+                                    if (parsedDate >= DateTime.Now)
+                                    {
+                                        futureValidBookings.Add(booking.Value);
+                                        continue;
+                                    }
+                                }
+                                else if (DateTime.TryParseExact(secondString, "ddd MMM d yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
+                                {
+                                    // handle dates with single digit day
+                                    if (parsedDate >= DateTime.Now)
+                                    {
+                                        futureValidBookings.Add(booking.Value);
+                                        continue;
+                                    }
+                                }
+
+                                // in any case assume it is a valid booking record, just let it through
+                                // But if this is in the past it will be displayed in the scheduler as a past booking 
                                 _logger.LogWarning($"GetAppointments:  Unabled to parse date : '{dateString}'");
                                 futureValidBookings.Add(booking.Value); // go ahead and add it to the list anyway
                             }
@@ -278,50 +291,42 @@ namespace TcneShared
                                 int itemNo = 0;
                                 try
                                 {
-                                    long finalEndDate = 0; // this is the maximum timestamp found in the items collection.
+                                    long finalStartDate = 9999999999; // this is the minimum timestamp found in the items collection.
+                                    long finalEndDate   = 0; // this is the maximum timestamp found in the items collection.
 
                                     // usually a booking detail will only have a single item in this collection.
                                     // in the event there are 2 or more, then the requirement is to compute the total duration of the booking.
                                     // to do that, iterate the items collection and capture the latest enddate and use that for the enddate of the booking
 
-                                    if (booking.BookingId == 213)
-                                    {
-                                        _logger.LogWarning("--------------------------------");
-                                        _logger.LogError("BookingId is 213");
-                                    }
 
                                     foreach (KeyValuePair<string, CheckFrontBookingDetail.Item> detailItem in detailModel.BookingDetail.Items)
                                     {
-                                        if (detailModel.BookingDetail.Items.Count > 1)
-                                        {
-                                            _logger.LogWarning("--------------------------------");
-                                            _logger.LogWarning($"BookingId {booking.BookingId}  Detail Item {itemNo}  : Items Count:  {detailModel.BookingDetail.Items.Count}");
-                                            _logger.LogWarning($"BookingId {booking.BookingId}  Detail Item {itemNo}  :  {detailItem.Value.StartDate} - {detailItem.Value.EndDate}");
-                                        }
-                                        _logger.LogWarning("--------------------------------");
-
-                                        if (booking.BookingId == 213)
-                                        {
-                                            _logger.LogWarning($"BookingId {booking.BookingId}  Detail Item {itemNo}  :  {detailItem.Value.StartDate} - {detailItem.Value.EndDate}");
-                                        }
-
-                                        _logger.LogWarning("--------------------------------");
-
-
-
                                         booking.Studio      = detailItem.Value.Studio;
-                                        booking.EndDate     = detailItem.Value.EndDate;
-                                        booking.StartDate   = detailItem.Value.StartDate;
 
+                                        if (itemNo==0)
+                                        {
+                                            // in most cases, this will be the only item in the collection
+                                            booking.EndDate = detailItem.Value.EndDate;
+                                            booking.StartDate = detailItem.Value.StartDate;
+                                        }
+                                        // But if there are additional items, need to capture the earliest start date and the latest end date
+
+                                        // capture the earliest start date and the latest end date
+                                        if (detailItem.Value.StartDate < finalStartDate)
+                                        {
+                                            finalStartDate = detailItem.Value.StartDate;
+                                        } 
                                         if (detailItem.Value.EndDate > finalEndDate)
                                         {
                                             finalEndDate = detailItem.Value.EndDate;
                                         }
+
                                         itemNo++;
                                     }
 
-                                    booking.EndDate = finalEndDate;
-                                    _logger.LogInformation($"BookingId {booking.BookingId}   Detail Items count : {itemNo}");
+                                    booking.StartDate   = finalStartDate;
+                                    booking.EndDate     = finalEndDate;
+                                    _logger.LogInformation($"BookingId {booking.BookingId}   Detail Items count : {itemNo}  StartDate: {finalStartDate}  EndDate: {finalEndDate}");
                                 }
                                 catch (Exception ex)
                                 {
@@ -333,7 +338,7 @@ namespace TcneShared
                             // booking SHOULD be the booking model that has StartDate, EndDate, Studio
                             Debug.WriteLine("---");
                             string? value = _configuration["ApiRateLimitDelayMilliseconds"];
-                            if (value == null) { value = "500";  }
+                            if (value == null) { value = "500";  }  // default if config fails  
                             int apiRateLimitDelay = int.Parse(value);
                             _logger.LogInformation($"Thottle API calls  : {apiRateLimitDelay} ms");
                             Task.Delay(apiRateLimitDelay).Wait();  // delay to avoid CheckFront API rate limit   
@@ -382,14 +387,6 @@ namespace TcneShared
                     //var key = item.Key;
                     //var booking = item.Value;
 
-                    Debug.WriteLine($"BookingId       : {booking.BookingId}");
-                    Debug.WriteLine($"Summary         : {booking.Summary}");
-                    Debug.WriteLine($"StatusId        : {booking.StatusId}");
-                    Debug.WriteLine($"StatusName      : {booking.StatusName}");
-                    Debug.WriteLine($"CustomerName    : {booking.CustomerName}");
-                    Debug.WriteLine($"DateDescription : {booking.DateDescription}");
-                    Debug.WriteLine("===================================");
-
                     var startDateTime = UnixTimeStampToDateTime(booking.StartDate);
                     var endDateTime   = UnixTimeStampToDateTime(booking.EndDate);
 
@@ -435,14 +432,9 @@ namespace TcneShared
             return appointmentData;
         }
 
-
-
-
         //   Epoch is an instant of time considered to be the starting point for a particular period.
         //   The Unix time started on 1970-01-01 00:00:00 GMT, and stored as an integer representing seconds past this "epoch" time.
-        
-
-        
+        //   
         public DateTime UnixTimeStampToDateTime(long unixTimeStamp)
         {
             // Convert Unix timestamp to DateTime in UTC
@@ -661,7 +653,5 @@ namespace TcneShared
 
             return dtLastWebHookRun;
         }
-
-
     }
 }

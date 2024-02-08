@@ -184,6 +184,26 @@ namespace TcneShared.Models
 
         public int Studio { get; set; }
 
+        public Booking(Booking booking)
+        {
+            BookingId = booking.BookingId;
+            Code = booking.Code;
+            StatusId = booking.StatusId;
+            StatusName = booking.StatusName;
+            CreatedDate = booking.CreatedDate;
+            Total = booking.Total;
+            TaxTotal = booking.TaxTotal;
+            PaidTotal = booking.PaidTotal;
+            CustomerId = booking.CustomerId;
+            CustomerName = booking.CustomerName;
+            CustomerEmail = booking.CustomerEmail;
+            Summary = booking.Summary;
+            DateDescription = booking.DateDescription;
+            Tid = booking.Tid;
+            Token = booking.Token;
+            StartDate = booking.StartDate;
+            EndDate = booking.EndDate;
+            Studio = booking.Studio;
+        }
     }
-
 }

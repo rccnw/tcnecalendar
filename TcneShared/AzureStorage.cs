@@ -144,6 +144,7 @@ namespace TcneShared
 
             List<SchedulerAppointmentData> listAppointments = new List<SchedulerAppointmentData>();
 
+
             #region PingCheckFrontApi
 
             if (_apiService != null)
@@ -195,8 +196,7 @@ namespace TcneShared
                         {
                             //ignore some bookings, no need to get detail for them
                             if (booking.Value.StatusName == "Cancelled") { continue; }
-                            if (booking.Value.StatusName == "Void") { continue; }
-
+                            if (booking.Value.StatusName == "Void")      { continue; }
 
                             //ignore bookings in the past. Note we haven't fetched the detail info, so using the parent Booking model to check the date
                             string dateString   = booking.Value.DateDescription;
@@ -250,10 +250,21 @@ namespace TcneShared
 
                                 // in any case assume it is a valid booking record, just let it through
                                 // But if this is in the past it will be displayed in the scheduler as a past booking 
-                                _logger.LogWarning($"GetAppointments:  Unabled to parse date : '{dateString}'");
+
+                                //_logger.LogWarning($"GetAppointments:  Unabled to parse date : '{dateString}'");
+
+                                // If this is a situation where the booking spans days, then will need to create virtual bookings for each day
                                 futureValidBookings.Add(booking.Value); // go ahead and add it to the list anyway
                             }
                         }
+
+                        // because some bookings can span days, the futureValidBookings list may contain multiple bookings for the same bookingId.
+                        // The detailModel.BookingDetail.Items will contain the detail for each day of the booking.
+                        // In that case, additional bookings will be created for each day of the booking.
+                        // The listDisplayAppointments list will contain the final list of appointments to display in the scheduler,
+                        // including any virtual bookings created for multi-day bookings.
+
+                        List<Booking> listDisplayBookings = new();
 
                         foreach (var booking in futureValidBookings)
                         {
@@ -268,7 +279,6 @@ namespace TcneShared
                             try
                             {
                                 detailModel = JsonSerializer.Deserialize<CheckFrontBookingDetail.RootObject>(jsonDetail);
-
                             }
                             catch (JsonException ex)
                             {
@@ -291,42 +301,26 @@ namespace TcneShared
                                 int itemNo = 0;
                                 try
                                 {
-                                    long finalStartDate = 9999999999; // this is the minimum timestamp found in the items collection.
-                                    long finalEndDate   = 0; // this is the maximum timestamp found in the items collection.
-
-                                    // usually a booking detail will only have a single item in this collection.
-                                    // in the event there are 2 or more, then the requirement is to compute the total duration of the booking.
-                                    // to do that, iterate the items collection and capture the latest enddate and use that for the enddate of the booking
-
-
                                     foreach (KeyValuePair<string, CheckFrontBookingDetail.Item> detailItem in detailModel.BookingDetail.Items)
                                     {
-                                        booking.Studio      = detailItem.Value.Studio;
+                                        Booking vBooking    = new(booking);
+                                        vBooking.Studio     = detailItem.Value.Studio;
+                                        vBooking.StartDate  = detailItem.Value.StartDate;
+                                        vBooking.EndDate    = detailItem.Value.EndDate;
 
-                                        if (itemNo==0)
-                                        {
-                                            // in most cases, this will be the only item in the collection
-                                            booking.EndDate = detailItem.Value.EndDate;
-                                            booking.StartDate = detailItem.Value.StartDate;
-                                        }
-                                        // But if there are additional items, need to capture the earliest start date and the latest end date
 
-                                        // capture the earliest start date and the latest end date
-                                        if (detailItem.Value.StartDate < finalStartDate)
+                                        bool result = Is24HourBooking(detailItem.Value.StartDate, detailItem.Value.EndDate);
+                                        if (result)
                                         {
-                                            finalStartDate = detailItem.Value.StartDate;
-                                        } 
-                                        if (detailItem.Value.EndDate > finalEndDate)
-                                        {
-                                            finalEndDate = detailItem.Value.EndDate;
+                                            var newEndDate = detailItem.Value.EndDate - 300;  // subtract 5 minutes from the end date
+
+                                            vBooking.EndDate = newEndDate;
                                         }
 
                                         itemNo++;
+        
+                                        listDisplayBookings.Add(vBooking);
                                     }
-
-                                    booking.StartDate   = finalStartDate;
-                                    booking.EndDate     = finalEndDate;
-                                    _logger.LogInformation($"BookingId {booking.BookingId}   Detail Items count : {itemNo}  StartDate: {finalStartDate}  EndDate: {finalEndDate}");
                                 }
                                 catch (Exception ex)
                                 {
@@ -334,16 +328,19 @@ namespace TcneShared
                                     _logger.LogError($"{ex.Message}");
                                 }
                             }
+                            else
+                            {
+                                _logger.LogError($"BookingId {booking.BookingId}  detailModel is null");
+                            }
 
-                            // booking SHOULD be the booking model that has StartDate, EndDate, Studio
-                            Debug.WriteLine("---");
                             string? value = _configuration["ApiRateLimitDelayMilliseconds"];
                             if (value == null) { value = "500";  }  // default if config fails  
                             int apiRateLimitDelay = int.Parse(value);
                             _logger.LogInformation($"Thottle API calls  : {apiRateLimitDelay} ms");
                             Task.Delay(apiRateLimitDelay).Wait();  // delay to avoid CheckFront API rate limit   
                         }
-                        listAppointments = ConvertModelToApptData(futureValidBookings); //, displayLocation);
+
+                        listAppointments = ConvertModelToApptData(listDisplayBookings); 
                     }
                     catch (Exception)
                     {
@@ -357,6 +354,21 @@ namespace TcneShared
             {
                 _logger.LogError($"GetAppointments:  exception   {ex.Message}");
                 throw;
+            }
+        }
+
+        private bool Is24HourBooking(long startDate, long endDate)
+        {
+            var startDateTime = UnixTimeStampToDateTime(startDate);
+            var endDateTime = UnixTimeStampToDateTime(endDate);
+
+            if (startDateTime.Hour == 0 && startDateTime.Minute == 0 && endDateTime.Hour == 0 && endDateTime.Minute == 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -374,6 +386,9 @@ namespace TcneShared
 
             try
             {
+                var nestId      = _configuration["CheckFront_Category_Nest"];
+                var hideoutId   = _configuration["CheckFront_Category_Hideout"];
+
                 int id = 1;
                 foreach (Booking booking in modelData)
                 {
@@ -383,37 +398,27 @@ namespace TcneShared
 
                     Debug.WriteLine($"StatusName:  {booking.StatusName}");
 
-                    // Access the key and value of each item in the dictionary
-                    //var key = item.Key;
-                    //var booking = item.Value;
-
                     var startDateTime = UnixTimeStampToDateTime(booking.StartDate);
                     var endDateTime   = UnixTimeStampToDateTime(booking.EndDate);
 
                     string location = "Reserved";
                     string css      = "unknown";
 
-                    if (booking.Studio == 13)
+                    if (booking.Studio.ToString() == nestId)
                     {
-                        css      = "nest"; // #1861ac;  e-appointment.
+                        css      = "nest"; 
                         location = "Nest";
                     }
-                    else if (booking.Studio == 14)
+                    else if (booking.Studio.ToString() == hideoutId)
                     {
-                        css      = "hideout";    // e-appointment.
+                        css      = "hideout";  
                         location = "Hideout";
                     }
 
-                    string todStart = startDateTime.ToShortTimeString();
-                    string todEnd   = endDateTime.ToShortTimeString();
-
-                    //string subject = $"{location} {todStart} - {todEnd}";
-                    string subject = $"-{todEnd}"; // this is a hack to get the scheduler to display the end time in the subject field
-
-                    // add a SyncFusion AppointmentData object to the collection
+                    // add a SyncFusion SchedulerAppointmentData object to the collection
                     appointmentData.Add(new SchedulerAppointmentData
                     {
-                        Id = id,
+                        Id          = id,
                         Subject     = booking.StatusName,
                         Location    = location,
                         StartTime   = startDateTime,

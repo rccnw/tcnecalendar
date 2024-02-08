@@ -58,6 +58,10 @@ https://tcnefunctionapp.azurewebsites.net/api/CheckFrontFunction
 This will activate the CheckFrontFunction, which will in turn activate the HttpHelperFunction,
 which will fetch data from the CheckFront API and store it in an Azure Storage Account.
 
+It is also possible to activate the HttpHelperFunction directly in the same way.
+This doesn't add much value since the CheckFrontFunction activates it (and does little else), but it is a way to test the function independently.
+https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction
+
 The TcneCalendar web app will fetch data from the Azure Storage Account and display it in the calendar UI.
 The TcneCalendar web app is a non-interactive display of the CheckFront booking data.  
 It is not intended to be used for booking or reservation purposes.

@@ -12,24 +12,3 @@ https://api.checkfront.com/ref/webhook/booking.html
 
 
 
-==========================
-
-TcneFunctionApp | Properties
-Application Insights
-
-
-APPINSIGHTS_INSTRUMENTATIONKEY
-5cfddd92-7e9b-4a46-95ff-6f92a625a03e
-
-CONNECTION STRING
-InstrumentationKey=5cfddd92-7e9b-4a46-95ff-6f92a625a03e;IngestionEndpoint=https://westus3-1.in.applicationinsights.azure.com/
-
-==========================
-tcne
-Application Insights
-Instrumentation Key :  7b83cf1b-ccd0-4b67-bec0-6ba2be56b9c4
-Connection String   :  InstrumentationKey=7b83cf1b-ccd0-4b67-bec0-6ba2be56b9c4;IngestionEndpoint=https://westus3-1.in.applicationinsights.azure.com/
-
-
-
-

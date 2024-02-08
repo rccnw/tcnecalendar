@@ -6,25 +6,32 @@ Developer:  Rob Campbell rcc@pobox.com  2024-02-07
 
 This project is in support of the Crow's Nest Escape rental facility in Seattle, WA.  ('TCNE'))
 This business has two rental facilities, the 'Nest' and the 'Escape'.  Each facility is rented separately.
-
-
+TCNE has a public website hosted on Wix.  
+TCNE is managed via the CheckFront booking system.
 The purpose is to provide a limited mirror of the CheckFront Bookings calendar for the Crow's Nest Escape and Hideout.
+That will allow renters to see available times at each facility.  It is not intended to be used for booking or reservation purposes.
+
 
 see: https://www.thecrowsnestescape.com  (Wix site)
 
-TCNE is managed via the CheckFront booking system.  
+
 This project is intended to provide an indication of available times at each facility.
 It does so by fetching data from the CheckFront API and displaying it in a calendar format.
 
+The public facing website is available at the following URL:
 See: https://tcne.azurewebsites.net/  (Azure hosted site)
 
 This site is currently also available on the Wix site via an iFrame on the ProBookings page. (password required)
+(this page may be deprecated soon)
+https://www.thecrowsnestescape.com/probooking
+
+
 
 This project is created using Microsoft technologies and hosted on Microsoft Azure Cloud.
 The project is maintained in a Git source code control repository 'tcnecalendar' on GitHub. 
+This is Rob Campbell's personal GitHub account.  In the future, it may be moved to a more appropriate account under the Crow's Nest Escape business.
 
 see:  https://github.com/rccnw/tcnecalendar 
-
 
 
 Required Accounts and Services:
@@ -42,11 +49,48 @@ Microsoft Visual Studio 2022 Community edition or later
 SyncFusion Studio Template
 Git source code control installed and configured
 
+SyncFusion is a vendor of UI components for .NET development.  This project uses a Community License for SyncFusion components.
+This license is under the name of Rob Campbell, and is not transferrable to other developers or organizations.
+The license key is not included in the source code repository.  It is required to build and deploy the project.
+It is stored locally on the development machine in the 'User Secrets' store, which is a feature of Visual Studio.
+The same information is also stored in the Azure App Service configuration settings for both the web app and the function app.
+see:  https://support.syncfusion.com/kb/article/9795/how-to-get-community-license-and-install-it
+
+Cloud Services:
+
+This project uses the following Azure Cloud services:
+
+subscription:  Pay-As-You-Go VSP (personal account - need TCNE account)
+resource group: 'crowsnest'
+App Service plan (for Web App)
+App Service plan (for Function App)
+App Service (for Web App)
+Function App (for Azure Functions)
+Storage account
+Application Insights
+Metric alert rule
+Action group
+Smart detector alert rule
+Smart detector alert rule
+
+Overview of the Project:
+
+A website which has a calendar display of bookings. The calendar itself is non-interactive, but options exist for filtering and modifying the display.
+Several Azure Functions represent the 'backend' of the project.  
+These functions are triggered by HTTP requests and Timers.
+The data is fetched by the Azure Functions from the CheckFront API and stored in an Azure Storage Account.
+CheckFront is configured to use the 'TcneFunctionApp' as a WebHook notification endpoint for booking changes.
+Booking modifications in CheckFront will trigger the 'TcneFunctionApp' to fetch the updated data from CheckFront and store it in the Azure Storage Account.
+A timer function is used to periodically (once per hour) fetch data from CheckFront and store it in the Azure Storage Account as a guarantee of data freshness.
+
+
 To Build and Deploy:
 
 clone the Git repository to your local development environment
 open the solution in Visual Studio
+select 'Manage User Secrets' from the project context menu, and copy in the required info (this is handled manually by TCNE staff))
 build the solution
+Ensure the required Azure resources are created and configured in the Azure portal.
 download publish profiles from Azure for both the App Service and the Function App.
 publish the CheckFrontAzureFunction project and TcneCalendar project.
 
@@ -69,19 +113,20 @@ It is not intended to be used for booking or reservation purposes.
 The TcneCalendar web app is hosted on Microsoft Azure Cloud as an App Service in the Free Tier.
 
 
+Project source code details:
 
-
-Created using SyncFusion Studio Template
-Blazor Web App
-Included Shceduler, Media Queries, ButtonGroup
-.NET 8
+Created using SyncFusion Studio Template for Blazor
+configurations:
+    Blazor Web App
+    Included Shceduler, Media Queries, ButtonGroup
+    .NET 8
 
 
 Git Repo
 https://github.com/rccnw/tcnecalendar.git
 
 
-Questions:   rcc@pobox.com
+
 
 
 This project is intended to provide a limited mirror of the CheckFront Bookings calendar for the Crow's Nest Escape and Hideout.
@@ -112,33 +157,34 @@ Bookings are displayed on a calendar showing reserved times as blocks of varying
 Bookings are only displayed from the current date forward.
 A set of buttons will allow select of data from the Nest, the Escape, or Both.  
 Site reservations are color coded.
-Exlude any bookings athat are VOID or CANCEL status.
+Exlude any bookings that are VOID or CANCEL status.
 The Calendar is not guaranteed to be accurate, as the data refresh from CheckFront API is 'as needed' 
-Only Start/End time is displayed.  That is implicit in the size of the reservation block in the UI, so maybe no popup detail needed.
+Only Start/End time, facility name, and booking status is displayed.  
 
 
-TBD  - better syncronization with CheckFront is possible in future version
+
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Assumption:
 
 The Booking detail data is fetched from the CheckFront API at the booking/booking_id endpoint
-A sepearate API call is required to get this detail data for each booking (rental)
+A separate API call is required to get this detail data for each booking (rental)
 That API call returns detail data about the booking, including a list of 'items', each item has 3 values we need: 
 	1) start_date (encoded datetime)
 	2) end_date (encoded datetime)
 	3) category_id (13 Nest,  14 = Hideout)
 
-This app assumes there is ONLY ONE ITEM in this 'item' list.  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+These 'items' are the actual rental records, and are the basis for the calendar display.
 
 json excerpt:
 
     "items": {
       "1": {
-        "start_date": 1703894400,
+        "start_date": 1703894400,     (unix timestamp, seconds since 1970-01-01 00:00:00 UTC))
         "end_date": 1703901600,
-        "category_id": 13,
+        "category_id": 13,            (13 = Nest, 14 = Hideout))
         ...
       }
     },
@@ -190,39 +236,16 @@ Managed Identity for App Service
 Tutorial: Access Azure services from a .NET web app
 https://learn.microsoft.com/en-us/azure/app-service/scenario-secure-app-access-storage?tabs=azure-portal
 
-Managed Identity for web app tcne id enabled
-Object (principal) ID:          83877288-185b-496d-9b8f-e14c1b5976b9
-
-
 
 
 
 ===========================================================
-Dev Notes:
+Random Dev Notes:  
 
 Register Syncfusion license https://help.syncfusion.com/common/essential-studio/licensing/how-to-generate
 
 
-Identify JSON File and Data Structure: First, ensure that your JSON file is placed in the appropriate directory within your Blazor project. 
-You also need a C# class that matches the structure of your JSON data.
-
-
-
-Reading the File: Utilize file-reading capabilities to access the contents of the JSON file. 
-In a Blazor Server application, this can be done directly as it runs on the server. 
-For Blazor WebAssembly, you might need to fetch the file via HTTP if it's static content.
-
-Deserializing JSON: Use a JSON parser (like System.Text.Json or Newtonsoft.Json) to convert the JSON data into the C# object.
-
-Error Handling: Implement error handling to manage any issues that might occur during file reading or JSON parsing.
-
-
-
-
 https://tcne.checkfront.com/manage/developer/edit/?clientId=7697c358461a802d4e9750e64f8849ceba60950a
-
-
-App Name:  azurewebsites
 
 
 API Endpoint
@@ -230,14 +253,6 @@ https://tcne.checkfront.com/api/3.0/
 
 Authentication Type
 Token
-
-API Key
-HTTP BASIC Username (Token auth)
-7697c358461a802d4e9750e64f8849ceba60950a
-
-API Secret
-HTTP BASIC Password (Token auth)
-e22e0ae449ad7ad1930d1a27b36b25d532d7ca096f97d8e17e61c98b81c8d56f
 
 When send in request header using HTTP Basic authorization, allows direct access to API endpoints
 
@@ -258,13 +273,8 @@ https://blazor.syncfusion.com/documentation/common/how-to/troubleshoot
 
 
 https://blazor.syncfusion.com/documentation/scheduler/views
-        MinDate="@CurrentDate"      
 
-     @*            MaxDate="new DateTime(2023, 12, 31)" *@
-
-
-
-
+Convert Unix Timestamp to DateTime
 https://www.epochconverter.com/
 
 Azure uses UTC Everywhere
@@ -294,39 +304,12 @@ https://tcne.scm.azurewebsites.net/api/dump
 
 https://tcne.checkfront.com/api/3.0/company
 
-timestamp": 1707110053.912148,
 
-"timezone": "US/Pacific",
-"utc_offset": -8,
-
-
-
-
-
-
-booking.StartDate	1714766400	
-GMT: Friday, May 3, 2024 8:00:00 PM
-pacificDateTime	{5/3/2024 12:00:00 PM}	
-Your time zone: Friday, May 3, 2024 1:00:00 PM GMT-07:00 DST        CORRECT
-
-
-
-
-booking.EndDate	    1714773600	
-GMT: Friday, May 3, 2024 10:00:00 PM
-utcDateTime	{5/3/2024 10:00:00 PM}	
-pacificDateTime	{5/3/2024 12:00:00 PM}
-Your time zone: Friday, May 3, 2024 3:00:00 PM GMT-07:00 DST        CORRECT
 
 
 https://www.worldtimebuddy.com/utc-to-gmt-converter
 
 
-
-
-https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction?
-https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction?clientId=default
-https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction?
 
 
 

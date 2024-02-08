@@ -1,6 +1,72 @@
 
 TCNE Calendar App
 
+Developer:  Rob Campbell rcc@pobox.com  2024-02-07
+
+
+This project is in support of the Crow's Nest Escape rental facility in Seattle, WA.  ('TCNE'))
+This business has two rental facilities, the 'Nest' and the 'Escape'.  Each facility is rented separately.
+
+
+The purpose is to provide a limited mirror of the CheckFront Bookings calendar for the Crow's Nest Escape and Hideout.
+
+see: https://www.thecrowsnestescape.com  (Wix site)
+
+TCNE is managed via the CheckFront booking system.  
+This project is intended to provide an indication of available times at each facility.
+It does so by fetching data from the CheckFront API and displaying it in a calendar format.
+
+See: https://tcne.azurewebsites.net/  (Azure hosted site)
+
+This site is currently also available on the Wix site via an iFrame on the ProBookings page. (password required)
+
+This project is created using Microsoft technologies and hosted on Microsoft Azure Cloud.
+The project is maintained in a Git source code control repository 'tcnecalendar' on GitHub. 
+
+see:  https://github.com/rccnw/tcnecalendar 
+
+
+
+Required Accounts and Services:
+
+A Microsoft account.
+A Microsoft Azure subscription account
+A GitHub account for source code control.
+A CheckFront account login associated with the Crow's Nest Escape business.
+
+
+Development Environment:
+
+Microsoft Visual Studio 2022 Community edition or later
+.NET 8.0 or later installed
+SyncFusion Studio Template
+Git source code control installed and configured
+
+To Build and Deploy:
+
+clone the Git repository to your local development environment
+open the solution in Visual Studio
+build the solution
+download publish profiles from Azure for both the App Service and the Function App.
+publish the CheckFrontAzureFunction project and TcneCalendar project.
+
+Testing:
+
+in a browser, navigate to the URL of Function App api
+https://tcnefunctionapp.azurewebsites.net/api/CheckFrontFunction
+
+This will activate the CheckFrontFunction, which will in turn activate the HttpHelperFunction,
+which will fetch data from the CheckFront API and store it in an Azure Storage Account.
+
+The TcneCalendar web app will fetch data from the Azure Storage Account and display it in the calendar UI.
+The TcneCalendar web app is a non-interactive display of the CheckFront booking data.  
+It is not intended to be used for booking or reservation purposes.
+
+The TcneCalendar web app is hosted on Microsoft Azure Cloud as an App Service in the Free Tier.
+
+
+
+
 Created using SyncFusion Studio Template
 Blazor Web App
 Included Shceduler, Media Queries, ButtonGroup
@@ -9,20 +75,6 @@ Included Shceduler, Media Queries, ButtonGroup
 
 Git Repo
 https://github.com/rccnw/tcnecalendar.git
-
-
-
-
-
-TODO:
-
-storage account  save/fetch
-PWA
-CheckFront API fetch and update storage account
-Studio Category display buttons
-
-WebHook for CheckFront
-
 
 
 Questions:   rcc@pobox.com

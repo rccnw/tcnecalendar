@@ -202,9 +202,12 @@ namespace TcneShared
                             string dateString   = booking.Value.DateDescription;
                             DateTime parsedDate = DateTime.MinValue;
 
+                            DateTime yesterday = DateTime.Now.AddDays(-1).Date;
+                            DateTime dateTimePast = yesterday.AddHours(23).AddMinutes(59);
+
                             if (DateTime.TryParseExact(dateString, "ddd MMM dd, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                             {
-                                if (parsedDate >= DateTime.Now)
+                                if (parsedDate >= dateTimePast)
                                 {
                                     futureValidBookings.Add(booking.Value);
                                     continue;
@@ -213,7 +216,7 @@ namespace TcneShared
                             else if (DateTime.TryParseExact(dateString, "ddd MMM d, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                             {
                                 // handle dates with single digit day
-                                if (parsedDate >= DateTime.Now)
+                                if (parsedDate >= dateTimePast)
                                 {
                                     futureValidBookings.Add(booking.Value);
                                     continue;
@@ -232,7 +235,7 @@ namespace TcneShared
                                 // examine the second date in the string to see if it is in the future and should be included
                                 if (DateTime.TryParseExact(secondString, "ddd MMM dd yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                                 {
-                                    if (parsedDate >= DateTime.Now)
+                                    if (parsedDate >= dateTimePast)
                                     {
                                         futureValidBookings.Add(booking.Value);
                                         continue;
@@ -241,7 +244,7 @@ namespace TcneShared
                                 else if (DateTime.TryParseExact(secondString, "ddd MMM d yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                                 {
                                     // handle dates with single digit day
-                                    if (parsedDate >= DateTime.Now)
+                                    if (parsedDate >= dateTimePast)
                                     {
                                         futureValidBookings.Add(booking.Value);
                                         continue;

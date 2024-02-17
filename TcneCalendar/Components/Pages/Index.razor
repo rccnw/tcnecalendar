@@ -19,8 +19,7 @@
 
 @inject ILogger<Index>  Logger
 @inject AzureStorage    AzureStorageService
-
-    
+ 
 
 <PageTitle>TCNE Calendar</PageTitle>
 
@@ -76,15 +75,12 @@
         Height="650px"
         EnableAdaptiveUI="true"
         @bind-CurrentView="@CurrentView"
-        @bind-SelectedDate="@CurrentDate">
-
+        @bind-SelectedDate="@CurrentDate">    @*  assigning to CurrentDate does nothing, can't control UTC bug *@
         <ScheduleViews>
             <ScheduleView Option="View.Week"></ScheduleView>
             <ScheduleView Option="View.Month" IsSelected="true"></ScheduleView>
         </ScheduleViews>
-
         <ScheduleEventSettings DataSource="@DataSource" EnableTooltip="true"></ScheduleEventSettings>
-
     </SfSchedule>
 </div>
 
@@ -188,22 +184,14 @@
     .e-schedule .e-vertical-view .e-day-wrapper .e-appointment.hideout,
     .e-schedule .e-month-view .e-appointment.hideout {
         background: blue;
-    }
-
-/*     .e-appointment-details {
-        display: none;
-    }
-    .e-time {
-        display: none;
-    } */
-
-
-
-</style>
+    }     
+   
+ </style>
 
 @code {
 
-    public DateTime CurrentDate     = DateTime.Now;
+    public DateTime CurrentDate { get; set; }   // data binding with scheduler
+
     string displayLocation          = "nest";
     private string activeButton     = "AllButton"; // Default active button
 
@@ -244,27 +232,25 @@
     {
         Logger.LogInformation("OnInitializedAsync() called");
 
+        #region Hidden LastWebHookTime
+
+        // get the last azure function run timestamp from storage account
         var dtOffset = await AzureStorageService.GetLastWebhookRunTime();
 
         TimeZoneInfo pacificZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
-        DateTime pacificDateTime = TimeZoneInfo.ConvertTimeFromUtc(dtOffset.Value.DateTime, pacificZone);
+        DateTime dtLocal = TimeZoneInfo.ConvertTimeFromUtc(dtOffset.Value.DateTime, pacificZone);
 
-        //  @LastWebHookTime.To  .ToString("MM/dd/yyyy HH:mm")     ((DateTime.Hour + 11) % 12) + 1
-
-        var dtLocal = pacificDateTime;  //dtOffset.Value.DateTime;  //   .ToLocalTime();
-
-    //   ((DateTime.Hour + 11) % 12) + 1
+        // format dtLocal into a displayable string - this is 'hidden' via css and exists as a troubleshooting aid, 
+        // just 'select' the text in the browser to read it. (its just under the other visible text at the top)
         var ampm = "AM";
         if (dtLocal.Hour >= 12) { ampm = "PM"; }
-
         var hour = ((dtLocal.Hour + 11) % 12) + 1;
         var minute = dtLocal.Minute;
         var date  = dtLocal.ToShortDateString();
-
         string minuteLeadingZero = minute.ToString();
         if (minute < 10) { minuteLeadingZero = minute.ToString().PadLeft(2, '0'); }
-
         LastWebHookTime = date + " " + hour + ":" + minuteLeadingZero + " " + ampm;
+        #endregion
 
         await base.OnInitializedAsync();
     }
@@ -273,19 +259,6 @@
     private async Task RefreshDataSource()
     {
         List<SchedulerAppointmentData> listAppts = await AzureStorageService.LoadAppointmentsAzure(displayLocation);
-
-        //---------------------
-      // List<SchedulerAppointmentData> listApptsDebug = new List<SchedulerAppointmentData>();
-
-        // foreach(var appt in listAppts)
-        // {
-        //     appt.Subject    = "Cancelled";
-        //    // appt.Description = "Description";
-
-        //   //  listApptsDebug.Add(appt);
-        // }
-        //---------------------
-
         DataSource = listAppts;
         StateHasChanged();  
         Debug.WriteLine("RefreshSchedule() called  listAppts.Count:  {listAppts.Count}");
@@ -301,6 +274,15 @@
             AllButton("AllButton");
 
             await RefreshDataSource();
+
+            // DateTime dtUtcNow = DateTime.UtcNow;
+            // var dtUtcLater = dtUtcNow.AddDays(7);
+
+            // CurrentDate is used by the Scheduler component to indicate 'today' 
+            TimeZoneInfo pacificZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+            DateTime dtLocalTimeZone = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc), pacificZone);
+
+            CurrentDate = dtLocalTimeZone.Date; // need to assign something, but the value is ignored by the scheduler. it has its own opinion about today
 
             CurrentView = View.Month;
             StateHasChanged();

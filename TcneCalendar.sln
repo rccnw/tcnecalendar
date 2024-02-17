@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TcneCalendar", "TcneCalenda
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{E9C284C7-8444-4AA5-B515-A14F2C7BDE79}"
 	ProjectSection(SolutionItems) = preProject
+		app-configuration.md = app-configuration.md
+		complete-overview.md = complete-overview.md
 		notes.txt = notes.txt
+		tcne-fncapp-settings.json = tcne-fncapp-settings.json
+		tcne-webapp-settings.json = tcne-webapp-settings.json
+		technical-overview.md = technical-overview.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CheckFrontAzureFunction", "CheckFrontAzureFunction\CheckFrontAzureFunction.csproj", "{64A4C933-68DE-4B39-B93D-5B4B56C870BE}"

@@ -1,0 +1,58 @@
+{
+  // these are the application specific configuration values that need to be in the calendar web app app service.
+  // this was diwnloaded using Kudu.   https://tcnefunctionapp.scm.azurewebsites.net/
+  // 'App Settings' link under REST API heading
+  // this file is edited to remove the system configs
+
+
+  // system
+  //"deployment_branch": "master",
+  //"SCM_TRACE_LEVEL": "1",
+  //"SCM_COMMAND_IDLE_TIMEOUT": "60",
+  //"SCM_LOGSTREAM_TIMEOUT": "7200",
+  //"SCM_BUILD_ARGS": "",
+  //"aspnet:PortableCompilationOutput": "true",
+  //"aspnet:PortableCompilationOutputSnapshotType": "Microsoft.Web.Compilation.Snapshots.SnapshotHelper, Microsoft.Web.Compilation.Snapshots, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+  //"aspnet:DisableFcnDaclRead": "true",
+  //"SCM_GIT_USERNAME": "windowsazure",
+  //"SCM_GIT_EMAIL": "windowsazure",
+  //"webpages:Version": "3.0.0.0",
+  //"webpages:Enabled": "true",
+  //"webactivator:assembliesToScan": "Kudu.Services.Web",
+  //"WEBSITE_AUTH_LOGOUT_PATH": "/.auth/logout",
+
+
+
+  "CheckFront_Category_Hideout": "14",
+  "WEBSITE_AUTH_ENABLED": "False",
+  "StorageKey": "0uDXnUcIvhHqvC7CpJfn848JFoc9LKpbeskkOgnn26dlTNlKLibCO78S5RuF/8PV0lILO/Ubbwmg+AStk39tOA==",
+  "DIAGNOSTICS_AZUREBLOBCONTAINERSASURL": "https://tcne.blob.core.windows.net/web-server-logs?sp=rwdl&st=2024-02-01T05:23:45Z&se=2224-02-01T05:23:45Z&sv=2022-11-02&sr=c&sig=kwtNbir5bOV1Wp1AnXLWreH4ieHf9bmJ86fPsdF7lu0%3D",
+  "CheckFront_Category_Nest": "13",
+  "HTTP BASIC Username": "7697c358461a802d4e9750e64f8849ceba60950a",
+  "AzureStorageAccountContainerName": "checkfront",
+  "REMOTEDEBUGGINGVERSION": "17.6.10418.2696",
+  "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=tcne;AccountKey=0uDXnUcIvhHqvC7CpJfn848JFoc9LKpbeskkOgnn26dlTNlKLibCO78S5RuF/8PV0lILO/Ubbwmg+AStk39tOA==;EndpointSuffix=core.windows.net",
+  "HTTP BASIC Password": "e22e0ae449ad7ad1930d1a27b36b25d532d7ca096f97d8e17e61c98b81c8d56f",
+  "AzureStorageAccountName": "tcne",
+  "XDT_MicrosoftApplicationInsights_Mode": "default",
+  "APPLICATIONINSIGHTS_CONNECTION_STRING": "InstrumentationKey=7b83cf1b-ccd0-4b67-bec0-6ba2be56b9c4;IngestionEndpoint=https://westus3-1.in.applicationinsights.azure.com/",
+  "FUNCTIONS_RUNTIME_SCALE_MONITORING_ENABLED": "0",
+  "WEBSITE_SWAP_WARMUP_ENABLED": "0",
+  "WEBSITE_HTTPLOGGING_RETENTION_DAYS": "5",
+  "StudioCategoryUnknown": "99",
+  "WebHookTableName": "WebhookRuns",
+  "X-Frame-Options ALLOW-FROM": "https://www.thecrowsnestescape.com/probooking",
+  "ApplicationInsightsAgent_EXTENSION_VERSION": "~2",
+  "ScmType": "None",
+  "SyncFusionLicenseKey": "Ngo9BigBOggjHTQxAR8/V1NAaF5cWWJCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdnWX5fdXVXR2BcUkRyXko=",
+  "InfoMessage": "Reference Calendar for the Nest and the Hideout",
+  "WebHookTableUrl": "https://tcne.table.core.windows.net/WebhookRuns",
+  "AzureStorageBlobName": "appointments",
+  "WEBSITE_AUTH_AUTO_AAD": "False",
+  "WEBSITE_LOAD_USER_PROFILE": "1",
+  "ASPNETCORE_ENVIRONMENT": "Production",
+  "CheckFront_Api_Ping_Url": "https://tcne.checkfront.com/api/3.0/ping",
+  "WEBSITE_SITE_NAME": "tcne",
+  "CheckFront_Api_Url": "https://tcne.checkfront.com/api/3.0/booking",
+  "CheckFrontApiLimit": "500"
+}

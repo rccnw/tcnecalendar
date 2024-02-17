@@ -153,7 +153,7 @@ namespace TcneShared
                 if (!apiReady)
                 {
                     _logger.LogError("GetAppointments:  PingCheckFrontApi false - CheckFront service is not responding");
-                    throw new Exception();
+                    throw new Exception();  // TODO custom exception error indicator and alert
                 }
             }
             else
@@ -198,16 +198,23 @@ namespace TcneShared
                             if (booking.Value.StatusName == "Cancelled") { continue; }
                             if (booking.Value.StatusName == "Void")      { continue; }
 
+
                             //ignore bookings in the past. Note we haven't fetched the detail info, so using the parent Booking model to check the date
                             string dateString   = booking.Value.DateDescription;
                             DateTime parsedDate = DateTime.MinValue;
 
-                            DateTime yesterday = DateTime.Now.AddDays(-1).Date;
-                            DateTime dateTimePast = yesterday.AddHours(23).AddMinutes(59);
+                            TimeZoneInfo pacificZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");             
+                            DateTime dateTimeHere = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc), pacificZone);
 
+                            DateTime today = dateTimeHere.Date;
+
+                            DateTime yesterday = today.AddDays(-1).Date;
+
+                            // since the date string can have two forms depending on the date, either one or two characters,
+                            // may need to parse both forms to detect
                             if (DateTime.TryParseExact(dateString, "ddd MMM dd, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                             {
-                                if (parsedDate >= dateTimePast)
+                                if (parsedDate > yesterday)
                                 {
                                     futureValidBookings.Add(booking.Value);
                                     continue;
@@ -216,7 +223,7 @@ namespace TcneShared
                             else if (DateTime.TryParseExact(dateString, "ddd MMM d, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                             {
                                 // handle dates with single digit day
-                                if (parsedDate >= dateTimePast)
+                                if (parsedDate > yesterday)
                                 {
                                     futureValidBookings.Add(booking.Value);
                                     continue;
@@ -224,9 +231,15 @@ namespace TcneShared
                             }
                             else
                             {
+                                // Handle unusual circumstances where the dateString is not in the format expected above.
                                 // This can happen when a booking spans days:   'Tue Mar 26 2024 - Tue Apr 2 2024'   - 2 dates in the string
                                 // NOTE that in this case there is NO COMMA after the date field, unlike the other date format strings
-          
+
+                                // since we are filtering past bookings here, use the second date dectected in this string for comparison
+                                // This might produce a situation where an booking spans past and present/future days, in which case
+                                // we will display the entire range of days (presumed, not tested)
+
+                                // split a string in this format into its components: 'Tue Mar 26 2024 - Tue Apr 2 2024'
                                 string[] parts = dateString.Split('-');
                                 string firstString = parts[0].Trim();
                                 string secondString = parts[1].Trim();
@@ -235,7 +248,7 @@ namespace TcneShared
                                 // examine the second date in the string to see if it is in the future and should be included
                                 if (DateTime.TryParseExact(secondString, "ddd MMM dd yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                                 {
-                                    if (parsedDate >= dateTimePast)
+                                    if (parsedDate > yesterday)
                                     {
                                         futureValidBookings.Add(booking.Value);
                                         continue;
@@ -244,7 +257,7 @@ namespace TcneShared
                                 else if (DateTime.TryParseExact(secondString, "ddd MMM d yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                                 {
                                     // handle dates with single digit day
-                                    if (parsedDate >= dateTimePast)
+                                    if (parsedDate > yesterday)
                                     {
                                         futureValidBookings.Add(booking.Value);
                                         continue;
@@ -256,8 +269,10 @@ namespace TcneShared
 
                                 //_logger.LogWarning($"GetAppointments:  Unabled to parse date : '{dateString}'");
 
-                                // If this is a situation where the booking spans days, then will need to create virtual bookings for each day
-                                futureValidBookings.Add(booking.Value); // go ahead and add it to the list anyway
+                                // none of the checks for bookings prior to day have detected a prior booking,
+                                // so this item is considered a valid item to be displayed.
+                                // If this is a situation where the booking spans days, each day will be an distinct item to be added.
+                                futureValidBookings.Add(booking.Value); 
                             }
                         }
 

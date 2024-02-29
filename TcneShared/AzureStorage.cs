@@ -208,7 +208,7 @@ namespace TcneShared
 
                             DateTime today = dateTimeHere.Date;
 
-                            DateTime yesterday = today.AddDays(-1).Date;
+                            DateTime yesterday = today.Date.AddMinutes(-5);             // today.AddDays(-1).Date;
 
                             // since the date string can have two forms depending on the date, either one or two characters,
                             // may need to parse both forms to detect
@@ -216,9 +216,9 @@ namespace TcneShared
                             {
                                 if (parsedDate > yesterday)
                                 {
-                                    futureValidBookings.Add(booking.Value);
-                                    continue;
+                                    futureValidBookings.Add(booking.Value);    
                                 }
+                                continue;
                             }
                             else if (DateTime.TryParseExact(dateString, "ddd MMM d, yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                             {
@@ -226,8 +226,8 @@ namespace TcneShared
                                 if (parsedDate > yesterday)
                                 {
                                     futureValidBookings.Add(booking.Value);
-                                    continue;
                                 }
+                                continue;
                             }
                             else
                             {
@@ -251,8 +251,8 @@ namespace TcneShared
                                     if (parsedDate > yesterday)
                                     {
                                         futureValidBookings.Add(booking.Value);
-                                        continue;
                                     }
+                                    continue;
                                 }
                                 else if (DateTime.TryParseExact(secondString, "ddd MMM d yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate))
                                 {
@@ -260,19 +260,21 @@ namespace TcneShared
                                     if (parsedDate > yesterday)
                                     {
                                         futureValidBookings.Add(booking.Value);
-                                        continue;
                                     }
+                                    continue;
                                 }
+                                else
+                                {
+                                    // in any case assume it is a valid booking record, just let it through
+                                    // But if this is in the past it will be displayed in the scheduler as a past booking 
 
-                                // in any case assume it is a valid booking record, just let it through
-                                // But if this is in the past it will be displayed in the scheduler as a past booking 
+                                    //_logger.LogWarning($"GetAppointments:  Unabled to parse date : '{dateString}'");
 
-                                //_logger.LogWarning($"GetAppointments:  Unabled to parse date : '{dateString}'");
-
-                                // none of the checks for bookings prior to day have detected a prior booking,
-                                // so this item is considered a valid item to be displayed.
-                                // If this is a situation where the booking spans days, each day will be an distinct item to be added.
-                                futureValidBookings.Add(booking.Value); 
+                                    // none of the checks for bookings prior to day have detected a prior booking,
+                                    // so this item is considered a valid item to be displayed.
+                                    // If this is a situation where the booking spans days, each day will be an distinct item to be added.
+                                    futureValidBookings.Add(booking.Value);
+                                }
                             }
                         }
 

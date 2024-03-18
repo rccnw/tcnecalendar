@@ -66,19 +66,49 @@
     <br />
     <br />
 
+    <div class="btn-group" role="group" aria-label="TimeRange Selector">
+        <button type="button"
+                class="btn @(timeButton == "DayButton" ? "btn btn-primary active" : "btn btn-primary")"
+                @onclick='() => DayButton("DayButton")'
+                style="width:120px">
+            Day
+        </button>
+
+        <button type="button"
+                class="btn @(timeButton == "WeekButton" ? "btn btn-primary active" : "btn btn-primary")"
+                @onclick='() => WeekButton("WeekButton")'
+                style="width:120px">
+            Week
+        </button>
+
+        <button type="button"
+                class="btn @(timeButton == "MonthButton" ? "btn btn-primary active" : "btn btn-primary")"
+                @onclick='() => MonthButton("MonthButton")'
+                style="width:120px">
+            Month
+        </button>
+
+
+
+
+    </div>
+    <br />
+    <br />
+
     <br />
     <SfSchedule TValue="SchedulerAppointmentData"
         Readonly = "true"
         AllowDragAndDrop="false" 
         ShowQuickInfo="true" 
-        EnableAutoRowHeight="true"  
-        Height="650px"
+        EnableAutoRowHeight="true"
         EnableAdaptiveUI="true"
+
         @bind-CurrentView="@CurrentView"
-        @bind-SelectedDate="@CurrentDate">    @*  assigning to CurrentDate does nothing, can't control UTC bug *@
+        @bind-SelectedDate="@CurrentDate">
         <ScheduleViews>
-            <ScheduleView Option="View.Week"></ScheduleView>
-            <ScheduleView Option="View.Month" IsSelected="true"></ScheduleView>
+            <ScheduleView Option="View.Day"></ScheduleView>
+            <ScheduleView Option="View.Week" ></ScheduleView>
+            <ScheduleView Option="View.Month"></ScheduleView>
         </ScheduleViews>
         <ScheduleEventSettings DataSource="@DataSource" EnableTooltip="true"></ScheduleEventSettings>
     </SfSchedule>
@@ -100,7 +130,9 @@
     }
 
     .controlregion {
-        margin-top: 50px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        max-height: 100px;
     }
 
     .pagecontent {
@@ -194,7 +226,7 @@
 
     string displayLocation          = "nest";
     private string activeButton     = "AllButton"; // Default active button
-
+    private string timeButton       = "DayButton"; 
     public string LastWebHookTime = string.Empty;
 
 
@@ -222,6 +254,28 @@
         await RefreshDataSource();
     }
 
+    public async void DayButton(string buttonId)
+    {
+        Logger.LogInformation("DayButton() called");
+        timeButton = buttonId;
+        CurrentView = View.Day;
+        await RefreshDataSource();
+    }
+
+    public async void WeekButton(string buttonId)
+    {
+        Logger.LogInformation("WeekButton() called");
+        timeButton = buttonId;
+        CurrentView = View.Week;
+        await RefreshDataSource();
+    }
+    public async void MonthButton(string buttonId)
+    {
+        Logger.LogInformation("MonthButton() called");
+        timeButton = buttonId;
+        CurrentView = View.Month;
+        await RefreshDataSource();
+    }
 
     public List<SchedulerAppointmentData>? DataSource;   // Scheduler Appointment Data
 
@@ -251,6 +305,8 @@
         if (minute < 10) { minuteLeadingZero = minute.ToString().PadLeft(2, '0'); }
         LastWebHookTime = date + " " + hour + ":" + minuteLeadingZero + " " + ampm;
         #endregion
+
+
 
         await base.OnInitializedAsync();
     }
@@ -284,7 +340,7 @@
 
             CurrentDate = dtLocalTimeZone.Date; // need to assign something, but the value is ignored by the scheduler. it has its own opinion about today
 
-            CurrentView = View.Month;
+            CurrentView = View.Day;
             StateHasChanged();
         }
 

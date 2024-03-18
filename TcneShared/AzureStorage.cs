@@ -434,12 +434,20 @@ namespace TcneShared
                         css      = "hideout";  
                         location = "Hideout";
                     }
+                    string subject = "RENTAL";
+
+                    if (booking.StatusName.ToLower() == "cleaning")
+                    {
+                        subject = "CLEANING";
+                    }
+
+                    string endTime = endDateTime.ToString("hh:mm tt");
 
                     // add a SyncFusion SchedulerAppointmentData object to the collection
                     appointmentData.Add(new SchedulerAppointmentData
                     {
                         Id          = id,
-                        Subject     = booking.StatusName,
+                        Subject     = subject + " Ends: " + endTime,
                         Location    = location,
                         StartTime   = startDateTime,
                         EndTime     = endDateTime,
@@ -603,12 +611,15 @@ namespace TcneShared
             {
                 if (displayLocation == "all")
                 {
+                    item.Location = string.Empty;   // we only need this to filter by location, don't need to display it.
                     filteredList.Add(item);
                 }
                 else if (item.Location.ToLower() == displayLocation)
                 {
+                    item.Location = string.Empty;   // we only need this to filter by location, don't need to display it.
                     filteredList.Add(item);
                 }
+                // else ignore this item
             }
             return filteredList;
         }

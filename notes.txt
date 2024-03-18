@@ -351,3 +351,7 @@ https://www.epochconverter.com/
     /// </summary>
 
 
+    booking.StatusName
+    Cleaning
+    Paid
+    Deposit

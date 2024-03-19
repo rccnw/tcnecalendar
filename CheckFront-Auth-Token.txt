@@ -1,0 +1,20 @@
+
+
+Application Name
+azurewebsites2
+
+
+API Endpoint
+https://tcne.checkfront.com/api/3.0/
+
+Authentication Type
+Token
+
+API Key
+53b904105a2dc21bd435afd53fe7025da103daa6
+
+API Secret
+87958cef1a70004352993617c407669c1f7ef7aaa2db092b21be4eb1ee482be8
+
+
+

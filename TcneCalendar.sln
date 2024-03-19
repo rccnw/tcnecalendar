@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{E9C284C7-8444-4AA5-B515-A14F2C7BDE79}"
 	ProjectSection(SolutionItems) = preProject
 		app-configuration.md = app-configuration.md
+		CheckFront-Auth-Token.txt = CheckFront-Auth-Token.txt
 		complete-overview.md = complete-overview.md
 		notes.txt = notes.txt
 		tcne-fncapp-settings.json = tcne-fncapp-settings.json

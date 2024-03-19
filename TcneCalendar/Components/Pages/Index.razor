@@ -39,23 +39,23 @@
     <div class="btn-group" role="group" aria-label="Studio Selector">
         <button 
             type="button"
-            class="btn @(activeButton == "NestButton" ? "btn btn-primary active" : "btn btn-primary")"
+            class="btnNest btn @(activeButton == "NestButton" ? "btn btn-primary active" : "btn btn-primary")"
                 @onclick='() => NestButton("NestButton")'
             style="width:120px">
             Nest
          </button>
 
         <button 
-            type="button" 
-            class="btn @(activeButton == "HideoutButton" ? "btn btn-primary active" : "btn btn-primary")"
+            type="button"
+                class="btnHideout btn @(activeButton == "HideoutButton" ? "btn btn-primary active" : "btn btn-primary")"
                 @onclick='() => HideoutButton("HideoutButton")'
             style="width:120px">
             Hideout
         </button>
 
         <button 
-            type="button" 
-            class="btn @(activeButton == "AllButton" ? "btn btn-primary active" : "btn btn-primary")"
+            type="button"
+                class="btnAll btn @(activeButton == "AllButton" ? "btn btn-primary active" : "btn btn-primary")"
                 @onclick='() => AllButton("AllButton")'
             style="width:120px">
             All
@@ -115,6 +115,19 @@
 </div>
 
 <style>
+
+    .btnNest {
+        background-color: green !important;
+    }
+
+    .btnHideout {
+        background-color: blue !important;
+    }
+
+    .btnAll {
+        background-color: black !important;
+    }
+
 
     .btn-group .btn.active {
         border-color: red;

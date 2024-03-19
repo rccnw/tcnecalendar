@@ -176,14 +176,43 @@ namespace TcneShared
                 var apiUrl = _configuration["CheckFront_Api_Url"];
                 var limit = _configuration["CheckFrontApiLimit"];
 
-                string bookingUrl = apiUrl + $"?limit=" + limit;    // use query param to set limit of records returned (CheckFront default is 100)
+                // use query param to set limit of records returned (CheckFront default is 100, max seems to be 250)
+                // The results are paged, so need to know the pages value, and then make multiple calls to get all the data
+                string bookingUrl = apiUrl + $"?limit=" + limit;    
+
+                // https://tcne.checkfront.com/api/3.0/booking?limit=250&page=2
+
 
                 // Get a new list of appointments from CheckFront
                 var token = _apiService.GetBasicAuthToken();
                 string bookingJson = await _apiService.GetJsonCheckFrontApiAsync(bookingUrl, token);
 
-                Root? bookingModel = JsonSerializer.Deserialize<Root>(bookingJson);
 
+
+                Root? bookingModel = JsonSerializer.Deserialize<Root>(bookingJson);
+                int pages = bookingModel.Request.Pages;
+                int page  = bookingModel.Request.Page;
+
+                if (pages > 1)
+                {
+                    // need to get the rest of the pages
+                    for (int i = 2; i <= pages; i++)
+                    {
+                        string pageUrl = apiUrl + $"?limit=" + limit + "&page=" + i;
+                        string pageJson = await _apiService.GetJsonCheckFrontApiAsync(pageUrl, token);
+                        Root? pageModel = JsonSerializer.Deserialize<Root>(pageJson);
+
+                        if (pageModel != null)
+                        {
+                            foreach (var kvp in pageModel.BookingIndex)
+                            {
+                                bookingModel.BookingIndex.Add(kvp.Key, kvp.Value);
+                            }
+                        }
+                    }
+                }
+
+                int numBookings = 0;
                 if (bookingModel != null)
                 {
                     // now we have the list of bookings  from CheckFront, we need to get the detail for each booking and merge it into the list
@@ -191,9 +220,22 @@ namespace TcneShared
 
                     try
                     {
+                        Debug.WriteLine($"BookingIds: --------------------------------");
+
                         var futureValidBookings = new List<Booking>();
+
                         foreach (KeyValuePair<string, Booking> booking in bookingModel.BookingIndex)
                         {
+
+                            numBookings++;
+
+                            Debug.WriteLine($"BookingId: {booking.Value.BookingId}");
+
+                            //if ((booking.Value.BookingId == 309) || (booking.Value.BookingId == 313))
+                            //{
+                            //    Debug.WriteLine($"BookingId: {booking.Value.BookingId}");
+                            //}
+
                             //ignore some bookings, no need to get detail for them
                             if (booking.Value.StatusName == "Cancelled") { continue; }
                             if (booking.Value.StatusName == "Void")      { continue; }
@@ -278,6 +320,9 @@ namespace TcneShared
                             }
                         }
 
+                        Debug.WriteLine($"numBookings = {numBookings}");
+                        Debug.WriteLine($" --------------------------------");
+
                         // because some bookings can span days, the futureValidBookings list may contain multiple bookings for the same bookingId.
                         // The detailModel.BookingDetail.Items will contain the detail for each day of the booking.
                         // In that case, additional bookings will be created for each day of the booking.
@@ -288,6 +333,14 @@ namespace TcneShared
 
                         foreach (var booking in futureValidBookings)
                         {
+
+
+                            //if ((booking.BookingId == 309) || (booking.BookingId == 313) )    
+                            //{
+                            //    Debug.WriteLine($"BookingId: {booking.BookingId}");
+                            //}
+
+
                             string detailUrl = apiUrl + "/" + booking.BookingId.ToString();
 
                             // this will get the detail for a single booking.

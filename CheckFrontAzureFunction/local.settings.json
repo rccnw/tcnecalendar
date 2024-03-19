@@ -15,7 +15,7 @@
   "CheckFront_Category_Hideout": "14",
   "CheckFront_Api_Url": "https://tcne.checkfront.com/api/3.0/booking",
   "CheckFront_Api_Ping_Url": "https://tcne.checkfront.com/api/3.0/ping",
-  "CheckFrontApiLimit": "500",
+  "CheckFrontApiLimit": "250",
   "StudioCategoryUnknown": "99",
   "UpdateStorageAccount": false,
   "HttpHelperFunctionUrl": "https://tcnefunctionapp.azurewebsites.net/api/HttpHelperFunction",

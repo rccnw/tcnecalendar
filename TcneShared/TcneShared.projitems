@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CheckFrontApi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CheckFrontBookingDetailModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CheckFrontBookingsModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Exceptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WebHook.cs" />
   </ItemGroup>
 </Project>

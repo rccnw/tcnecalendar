@@ -70,7 +70,7 @@ namespace CheckFrontAzureFunction
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in CheckFrontFunction {ex.Message}");
+                _logger.LogError($"Exception in HttpHelperFunction {ex.Message}");
             }
             // Stop the stopwatch
             stopwatch.Stop();

@@ -69,7 +69,7 @@ namespace CheckFrontAzureFunction
             catch (Exception ex)
             {
                 _logger.LogError($"TimerTriggerFunction:   UpdateStorageFromCheckFront failed - {ex.Message}");
-                throw;
+                //throw;
             }
         }
     }

@@ -57,7 +57,8 @@ namespace CheckFrontAzureFunction
             catch (Exception ex)
             {
                 _logger.LogError($"CheckFrontFunction:  Exception thrown  {ex.Message}");
-                throw;
+                return null;
+                //throw;
             }
         }
     }

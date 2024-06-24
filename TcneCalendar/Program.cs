@@ -60,7 +60,7 @@ builder.Services.AddAzureClients(clientBuilder =>
 });
 
 
-
+builder.Configuration.AddUserSecrets<Program>();
 
 
 

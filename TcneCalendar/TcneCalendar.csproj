@@ -8,18 +8,18 @@
   </PropertyGroup>
 <ItemGroup>
 	    <PackageReference Include="Azure.Data.Tables" Version="12.8.3" />
-	    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-	    <PackageReference Include="Azure.Storage.Common" Version="12.18.1" />
-	    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.0.0" />
-	    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.2" />
+	    <PackageReference Include="Azure.Storage.Blobs" Version="12.20.0" />
+	    <PackageReference Include="Azure.Storage.Common" Version="12.19.0" />
+	    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.2.0" />
+	    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.4" />
 	    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
 	    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
-	    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.2" />
-	    <PackageReference Include="Syncfusion.Blazor.Layouts" Version="24.2.6" />
-    <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="24.2.6" />
-    <PackageReference Include="Syncfusion.Blazor.Schedule" Version="24.2.6" />
-    <PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.2.6" />
-    <PackageReference Include="Syncfusion.Blazor.Themes" Version="24.2.6" />
+	    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.6" />
+	    <PackageReference Include="Syncfusion.Blazor.Layouts" Version="26.1.39" />
+    <PackageReference Include="Syncfusion.Blazor.SplitButtons" Version="26.1.39" />
+    <PackageReference Include="Syncfusion.Blazor.Schedule" Version="26.1.39" />
+    <PackageReference Include="Syncfusion.Blazor.Navigations" Version="26.1.39" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="26.1.39" />
 </ItemGroup>
 <ItemGroup>
   <Folder Include="Data\" />

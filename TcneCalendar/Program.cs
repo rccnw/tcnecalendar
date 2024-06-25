@@ -13,7 +13,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddSyncfusionBlazor();
 
+builder.Configuration.AddUserSecrets<Program>();
+
 var configuration = builder.Configuration;
+
+
 
 //builder.Services.AddHttpClient("MyHttpClient", client =>
 //{
@@ -60,7 +64,7 @@ builder.Services.AddAzureClients(clientBuilder =>
 });
 
 
-builder.Configuration.AddUserSecrets<Program>();
+
 
 
 

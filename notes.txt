@@ -355,3 +355,69 @@ https://www.epochconverter.com/
     Cleaning
     Paid
     Deposit
+
+
+
+
+    Notes re Azure Deployment:
+    Confirm deployed dll versions in KUDU
+    https://tcne.scm.azurewebsites.net/DebugConsole/?shell=powershell
+    Powershell
+    (navigate to  C:\home\site\wwwroot> )
+    Get-ChildItem -Path . -Filter *.dll | ForEach-Object { $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($_.FullName); [PSCustomObject]@{ Name = $_.Name; Version = $version.FileVersion; ProductVersion = $version.ProductVersion } } | Format-Table -AutoSize
+
+
+    As of June 24, 2024:
+
+Name                                                         Version          
+----                                                         -------          
+Azure.Core.dll                                               1.4000.24.30605  
+Azure.Data.AppConfiguration.dll                              1.400.124.21702  
+Azure.Data.Tables.dll                                        12.800.324.10602 
+Azure.Identity.dll                                           1.1100.424.31005 
+Azure.Messaging.EventGrid.dll                                4.700.21.50703   
+Azure.Security.KeyVault.Secrets.dll                          4.300.22.17503   
+Azure.Storage.Blobs.dll                                      12.2000.24.26306 
+Azure.Storage.Common.dll                                     12.1900.24.26306 
+Azure.Storage.Files.Shares.dll                               12.100.20.11104  
+Azure.Storage.Queues.dll                                     12.1100.122.42210
+BlazorServerCalendar.dll                                     1.0.0.0          
+CheckFrontCalendar.dll                                       1.0.0.0          
+DnsClient.dll                                                1.7.0.0          
+Microsoft.Azure.AppConfiguration.AspNetCore.dll              7.2.0.0          
+Microsoft.Bcl.AsyncInterfaces.dll                            4.700.20.21406   
+Microsoft.Extensions.Azure.dll                               1.700.424.31303  
+Microsoft.Extensions.Configuration.AzureAppConfiguration.dll 7.2.0.0          
+Microsoft.Extensions.DependencyInjection.Abstractions.dll    8.0.324.11423    
+Microsoft.Extensions.Logging.Abstractions.dll                8.0.324.11423    
+Microsoft.Extensions.Logging.AzureAppServices.dll            8.0.624.26909    
+Microsoft.Identity.Client.dll                                4.61.3.0         
+Microsoft.Identity.Client.Extensions.Msal.dll                4.61.3.0         
+Microsoft.IdentityModel.Abstractions.dll                     6.35.0.41201     
+MudBlazor.dll                                                6.12.0           
+MudBlazorWebApp1.dll                                         1.0.0.0          
+Syncfusion.Blazor.Buttons.dll                                26.1.39          
+Syncfusion.Blazor.Calendars.dll                              26.1.39          
+Syncfusion.Blazor.Core.dll                                   26.1.39          
+Syncfusion.Blazor.Data.dll                                   26.1.39          
+Syncfusion.Blazor.DropDowns.dll                              26.1.39          
+Syncfusion.Blazor.Inputs.dll                                 26.1.39          
+Syncfusion.Blazor.Layouts.dll                                26.1.39          
+Syncfusion.Blazor.Lists.dll                                  26.1.39          
+Syncfusion.Blazor.Navigations.dll                            26.1.39          
+Syncfusion.Blazor.Notifications.dll                          26.1.39          
+Syncfusion.Blazor.Popups.dll                                 26.1.39          
+Syncfusion.Blazor.Schedule.dll                               26.1.39          
+Syncfusion.Blazor.Spinner.dll                                26.1.39          
+Syncfusion.Blazor.SplitButtons.dll                           26.1.39          
+Syncfusion.Blazor.Themes.dll                                 26.1.39          
+Syncfusion.ExcelExport.Net.dll                               26.1.39          
+Syncfusion.Licensing.dll                                     26.1.39          
+SyncfusionBlazorApp1.dll                                     1.0.0.0          
+System.ClientModel.dll                                       1.0.24.5302      
+System.IO.Hashing.dll                                        6.0.21.52210     
+System.Memory.Data.dll                                       1.0.221.20802    
+System.Security.Cryptography.ProtectedData.dll               4.700.19.56404   
+TcneCalendar.dll                                             1.0.0.0 
+
+

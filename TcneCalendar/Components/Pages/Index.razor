@@ -27,7 +27,9 @@
 <br />
 
 <div class="infoMessage">
-    @Configuration["InfoMessage"]
+    @Configuration["InfoMessage1"]
+    <br />  
+    @Configuration["InfoMessage2"]
 </div>
 
 <div style="color:white">
@@ -111,10 +113,26 @@
             <ScheduleView Option="View.Month"></ScheduleView>
         </ScheduleViews>
         <ScheduleEventSettings DataSource="@DataSource" EnableTooltip="true"></ScheduleEventSettings>
+
+
+
+
+
     </SfSchedule>
 </div>
 
 <style>
+
+    .e-current-date {
+        display: none !important;
+        // To hide Today option
+    }
+
+
+    .e-today {
+        display: none !important;
+        // To hide Today option
+    }
 
     .btnNest {
         background-color: green !important;

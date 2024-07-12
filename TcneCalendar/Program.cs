@@ -72,8 +72,16 @@ var app = builder.Build();
 
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(configuration["SyncFusionLicenseKey"]);
 
+var showDetailedErrors = Environment.GetEnvironmentVariable("SHOW_DETAILED_ERRORS");
+
+
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || showDetailedErrors == "true")
+{ 
+    app.UseDeveloperExceptionPage();
+
+}
+else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

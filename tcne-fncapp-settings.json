@@ -47,7 +47,6 @@
   "ApplicationInsightsAgent_EXTENSION_VERSION": "~2",
   "ScmType": "None",
   "AzureWebJobs.HttpHelperFunction.Disabled": "0",
-  "InfoMessage": "Reference Calendar for The Crow's Nest Escape and Hideout",
   "WebHookTableUrl": "https://tcne.table.core.windows.net/WebhookRuns",
   "FUNCTIONS_EXTENSION_VERSION": "~4",
   "WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED": "1",

@@ -123,10 +123,21 @@
 
 <style>
 
-    .e-current-date {
-        display: none !important;
-        // To hide Today option
+/*      this is a workaround to hide a SyncFusion bug:  the 'current date' (indicated by blue circle) is using UTC+0 instead of USA server time */
+    .e-schedule .e-month-view .e-current-date .e-date-header, .e-schedule .e-month-agenda-view .e-current-date .e-date-header {
+/*         background: #0078d4; */
+        background: white;
+
+        border-radius: 50%;
+
+/*         color: #fff; */
+        color: black;
+
+        min-width: 20px;
+        padding: 0 4px;
+        width: fit-content;
     }
+
 
 
     .e-today {

@@ -486,7 +486,7 @@ namespace TcneShared
                         css      = "hideout";  
                         location = "Hideout";
                     }
-                    string subject = "RENTAL";
+                    string subject = "RENTED";
 
                     if (booking.StatusName.ToLower() == "cleaning")
                     {

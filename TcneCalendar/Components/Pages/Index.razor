@@ -21,13 +21,17 @@
 @inject AzureStorage    AzureStorageService
  
 
+@functions {
+    private MarkupString InfoMessage1 => new MarkupString(Configuration["InfoMessage1"]);
+}
+
 <PageTitle>TCNE Calendar</PageTitle>
 
 <span class="pageheader">TCNE Calendar</span>
 <br />
 
 <div class="infoMessage">
-    @Configuration["InfoMessage1"]
+    @InfoMessage1
     <br />  
     @Configuration["InfoMessage2"]
 </div>
@@ -122,6 +126,23 @@
 </div>
 
 <style>
+
+
+
+    .infoMessage {
+        font-weight: bold;
+        color: red;
+    }
+
+    .infoMessage .blue {
+        color: blue;
+    }
+
+    .infoMessage .green {
+        color: green;
+    }
+
+
 
 /*      this is a workaround to hide a SyncFusion bug:  the 'current date' (indicated by blue circle) is using UTC+0 instead of USA server time */
     .e-schedule .e-month-view .e-current-date .e-date-header, .e-schedule .e-month-agenda-view .e-current-date .e-date-header {

@@ -499,7 +499,7 @@ namespace TcneShared
                     appointmentData.Add(new SchedulerAppointmentData
                     {
                         Id          = id,
-                        Subject     = subject + " Ends: " + endTime,
+                        Subject     = subject,  // + " Ends: " + endTime,
                         Location    = location,
                         StartTime   = startDateTime,
                         EndTime     = endDateTime,
